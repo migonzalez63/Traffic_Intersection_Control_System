@@ -71,7 +71,7 @@ class TestTCS extends Thread {
              */
 
             //day mode code goes in this block
-            if(dayMode){
+            if(true){
                 if (count % 6 == 0) {
                     north_south_color = SignalColor.GREEN;
                     east_west_color = SignalColor.RED;
