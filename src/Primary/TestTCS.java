@@ -70,19 +70,36 @@ class TestTCS extends Thread {
             This is a simple way of alternating the states of signal colors on a timed basis.
              */
 
-            if (count %  4 ==  0){
-                north_south_color = SignalColor.GREEN;
-                east_west_color = SignalColor.RED;
-            } else if (count % 4 == 1){
-                north_south_color = SignalColor.YELLOW;
-                east_west_color = SignalColor.RED;
-            } else if (count % 4 == 2){
-                north_south_color = SignalColor.RED;
-                east_west_color = SignalColor.GREEN;
-            } else {
-                north_south_color = SignalColor.RED;
-                east_west_color = SignalColor.YELLOW;
+            //day mode code goes in this block
+            if(dayMode){
+                if (count % 6 == 0) {
+                    north_south_color = SignalColor.GREEN;
+                    east_west_color = SignalColor.RED;
+                } else if (count % 6 == 1) {
+                    north_south_color = SignalColor.YELLOW;
+                    east_west_color = SignalColor.RED;
+                } else if (count % 6 == 2) {
+                    north_south_color = SignalColor.RED;
+                    east_west_color = SignalColor.RED;
+                } else if (count % 6 == 3) {
+                    north_south_color = SignalColor.RED;
+                    east_west_color = SignalColor.GREEN;
+                } else if (count % 6 == 4) {
+                    north_south_color = SignalColor.RED;
+                    east_west_color = SignalColor.YELLOW;
+                } else {
+                    north_south_color = SignalColor.RED;
+                    east_west_color = SignalColor.RED;
+                }
             }
+
+
+            //night mode code goes here
+            
+            //emergency mode code goes here
+
+            //malfunction mode code goes here
+            
 
             /*
             This changes our grouping of lanes to the colors specified above.
