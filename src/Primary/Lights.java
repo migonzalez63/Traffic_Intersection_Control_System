@@ -21,11 +21,7 @@ public enum Lights {
     }
 
     public void setColor(SignalColor c){
-        if (c == SignalColor.GREEN){
-            isGreen = true;
-        }else {
-            isGreen = false;
-        }
+        isGreen = c == SignalColor.GREEN;
     }
 
     public Boolean getGreen(){
