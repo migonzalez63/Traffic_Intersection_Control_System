@@ -20,6 +20,7 @@ public enum Phases {
     private int phaseTime;
     LinkedList<Lanes> redLanes = new LinkedList<Lanes>();
     LinkedList<Lanes> greenLanes = new LinkedList<Lanes>();
+    LinkedList<Lanes> yellowLanes = new LinkedList<Lanes>();
 
     Phases (LinkedList<Lanes> redLanes,LinkedList<Lanes> greenLanes, LinkedList<Lanes> yellowLanes, int phaseTime, boolean nsPedestrians, boolean ewPedestrians) {
         this.phaseTime = phaseTime;
