@@ -494,11 +494,7 @@ public class Car extends Thread{
                 if (lead.ground != this.ground) isMoving = true;
             } else {
                 double xDif = Math.abs(lead.carX - carX);
-                if (xDif < width + 5) {
-                    isMoving = false;
-                } else {
-                    isMoving = true;
-                }
+                isMoving = !(xDif < width + 5);
                 if (lead.ground != this.ground) isMoving = true;
             }
         } else { // the car in front must've moved onto different component so start moving

@@ -241,11 +241,7 @@ public class Pedestrian extends Thread{
                 if (lead.ground != this.ground) isMoving = true;
             } else {
                 double xDif = Math.abs(lead.pedX - pedX);
-                if (xDif < width + 1) {
-                    isMoving = false;
-                } else {
-                    isMoving = true;
-                }
+                isMoving = !(xDif < width + 1);
                 if (lead.ground != this.ground) isMoving = true;
             }
         } else { // the car in front must've moved onto different component so start moving
