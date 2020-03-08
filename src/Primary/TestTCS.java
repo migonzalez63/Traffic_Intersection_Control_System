@@ -59,40 +59,93 @@ class TestTCS extends Thread {
          */
         LinkedList<Lanes> north_south = new LinkedList<>();
         LinkedList<Lanes> east_west = new LinkedList<>();
+        Phases currentPhase= Phases.ALL_RED;
+        int endPhaseTime=0;
         for(Lanes l: Lanes.values())
         {
             if(l.toString().contains("N") || l.toString().contains("S")) north_south.add(l);
             else east_west.add(l);
         }
 
+
         while(running){
             /*
             This is a simple way of alternating the states of signal colors on a timed basis.
              */
 
-            //day mode code goes in this block
-            if(true){
-                if (count % 6 == 0) {
-                    north_south_color = SignalColor.GREEN;
-                    east_west_color = SignalColor.RED;
-                } else if (count % 6 == 1) {
-                    north_south_color = SignalColor.YELLOW;
-                    east_west_color = SignalColor.RED;
-                } else if (count % 6 == 2) {
-                    north_south_color = SignalColor.RED;
-                    east_west_color = SignalColor.RED;
-                } else if (count % 6 == 3) {
-                    north_south_color = SignalColor.RED;
-                    east_west_color = SignalColor.GREEN;
-                } else if (count % 6 == 4) {
-                    north_south_color = SignalColor.RED;
-                    east_west_color = SignalColor.YELLOW;
-                } else {
-                    north_south_color = SignalColor.RED;
-                    east_west_color = SignalColor.RED;
+            /*
+            Day Mode:
+            For day mode, int endPhaseTime and Phase currentPhase were added.
+            endPhaseTime is an integer that, when phases are changed, it adds the current
+            counter time to however many seconds a phase is supposed to last
+            (Example: if counter is 4 and ALL_RED phase is 5, endPhaseTime is 9). It later
+            checks to see if counter is 9, which means the phase is ended and the next phase
+            should be run.
+            currentPhase is a global Phase used to keep track of the currentPhase. It is used
+            in a switch statement to change the ordering of phases when the count and the
+            endPhaseTime are the same.
+            * */
+            if(endPhaseTime==count) {
+                switch (currentPhase) {
+                    case ALL_RED:
+                        currentPhase = Phases.NS_LEFT_GREEN;
+                        break;
+                    case NS_LEFT_GREEN:
+                        currentPhase = Phases.NS_LEFT_YELLOW;
+                        break;
+                    case NS_LEFT_YELLOW:
+                        currentPhase = Phases.EW_LEFT_GREEN;
+                        break;
+                    case EW_LEFT_GREEN:
+                        currentPhase = Phases.EW_LEFT_YELLOW;
+                        break;
+                    case EW_LEFT_YELLOW:
+                        currentPhase = Phases.NS_GREEN;
+                        break;
+                    case NS_GREEN:
+                        currentPhase = Phases.NS_YELLOW;
+                        break;
+                    case NS_YELLOW:
+                        currentPhase = Phases.EW_GREEN;
+                        break;
+                    case EW_GREEN:
+                        currentPhase = Phases.EW_YELLOW;
+                        break;
+                    case EW_YELLOW:
+                        currentPhase=Phases.ALL_RED;
+                        break;
+                    default:
+                        System.out.println("There's no following case for the current phase in the switch!");
                 }
+                endPhaseTime = count + currentPhase.phaseTime;
+                displayCurrentPhase(currentPhase);
             }
-
+            System.out.println("CURRENT PHASE: "+currentPhase.toString());
+//        if (true) {
+//            if (count % 6 == 0) {
+//                north_south_color = SignalColor.GREEN;
+//                east_west_color = SignalColor.RED;
+//            } else if (count % 6 == 1) {
+//                north_south_color = SignalColor.YELLOW;
+//                east_west_color = SignalColor.RED;
+//            } else if (count % 6 == 2) {
+//                north_south_color = SignalColor.RED;
+//                east_west_color = SignalColor.RED;
+//            } else if (count % 6 == 3) {
+//                north_south_color = SignalColor.RED;
+//                east_west_color = SignalColor.GREEN;
+//            } else if (count % 6 == 4) {
+//                north_south_color = SignalColor.RED;
+//                east_west_color = SignalColor.YELLOW;
+//            } else if (count % 6 == 4) {
+//                north_south_color = SignalColor.RED;
+//                east_west_color = SignalColor.YELLOW;
+//            } else {
+//                north_south_color = SignalColor.RED;
+//                east_west_color = SignalColor.RED;
+//            }
+//
+//        }
 
             //night mode code goes here
             
@@ -104,19 +157,19 @@ class TestTCS extends Thread {
             /*
             This changes our grouping of lanes to the colors specified above.
              */
-            for(Lanes l: north_south)
-            {
-                l.setColor(north_south_color);
-            }
-            for(Lanes l: east_west)
-            {
-                l.setColor(east_west_color);
-            }
-            Lights.WEST.setColor(SignalColor.GREEN);
+//            for(Lanes l: north_south)
+//            {
+//                l.setColor(north_south_color);
+//            }
+//            for(Lanes l: east_west)
+//            {
+//                l.setColor(east_west_color);
+//            }
+//            Lights.WEST.setColor(SignalColor.GREEN);
             count ++;
 
 
-            testSensors();
+           // testSensors();
 
             try {
                 sleep(3000);
@@ -142,6 +195,24 @@ class TestTCS extends Thread {
 
         for (Lights l : Lights.values()){
             System.out.println(l.toString() + " has ped waiting: " + l.isPedestrianAt());
+        }
+    }
+
+    private void displayCurrentPhase(Phases currentPhase) {
+        if (currentPhase.greenLanes!=null) {
+            for (Lanes greenLane : currentPhase.greenLanes) {
+                greenLane.setColor(SignalColor.GREEN);
+            }
+        }
+        if(currentPhase.yellowLanes!=null) {
+            for (Lanes yellowLane : currentPhase.yellowLanes) {
+                yellowLane.setColor(SignalColor.YELLOW);
+            }
+        }
+        if (currentPhase.redLanes!=null){
+            for(Lanes redLane: currentPhase.redLanes){
+                redLane.setColor(SignalColor.RED);
+            }
         }
     }
 
