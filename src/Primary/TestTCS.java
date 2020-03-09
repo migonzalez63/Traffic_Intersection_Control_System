@@ -1,6 +1,6 @@
 package Primary;
 
-import java.util.LinkedList;
+import Graphics.Grounds.LaneDisplay;
 
 /**
  * TestTCS is the access point for Traffic Control System (TCS) interaction with the testbed.
@@ -20,10 +20,10 @@ import java.util.LinkedList;
  *
  */
 class TestTCS extends Thread {
-
-    private int count = 0;
-
     private Boolean running = true;
+    private TICSModes currentMode = TICSModes.MalfunctionMode;
+    private Lanes firstLane = null;
+    private long fastestArrival = 0;
 
     /**
      * TestTCS.begin() is the communication point between the testbed and the
@@ -43,129 +43,46 @@ class TestTCS extends Thread {
      */
     public void testBegin() {
 
-        /*
-        RED (Color.RED),
-        YELLOW (Color.YELLOW),
-        GREEN (Color.GREEN),
-        BLACK (Color.BLACK);
-
-        SignalColor is an enum holding possible signal colors.
-         */
-       // SignalColor north_south_color, east_west_color;
-
-        /*
-        This is a useful way of grouping lights by direction.
-        Here we are grouping parallel directions north with south, and east with west.
-         */
-        //LinkedList<Lanes> north_south = new LinkedList<>();
-        //LinkedList<Lanes> east_west = new LinkedList<>();
         Phases currentPhase= Phases.ALL_RED1;
-        TICSModes currentMode = TICSModes.DayMode;
-        int endPhaseTime=0;
-//        for(Lanes l: Lanes.values())
-//        {
-//            if(l.toString().contains("N") || l.toString().contains("S")) north_south.add(l);
-//            else east_west.add(l);
-//        }
-
+        //int endPhaseTime=0;
 
         while(running){
+            changeLightTimes();
 
-            /*Emergency Mode code goes below: */
-
-            if (currentMode==TICSModes.EmergencyMode){
-                //doSomething
-                //Remember that at any point, whenever an emergency car is needed,
-                //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
-                //In the next second, the program will do whatever you put in doSomething
-            }
-            /*Malfunction Mode code goes here: */
-            else if (currentMode==TICSModes.MalfunctionMode){
-                //doSomething
-                //Remember that at any point, whenever a malfunction happens,
-                //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
-                //In the next second, the program will do whatever you put in doSomething
-            }
-            else if (currentMode==TICSModes.DayMode){
-                changeToDayTimes();
-            }
-            else if (currentMode==TICSModes.NightMode){
-                changeToNightTimes();
-            }
-            /*For day mode, int endPhaseTime and Phase currentPhase were added.
-            endPhaseTime is an integer that, when phases are changed, it adds the current
-            counter time to however many seconds a phase is supposed to last
-            (Example: if counter is 4 and ALL_RED phase is 5, endPhaseTime is 9). It later
-            checks to see if counter is 9, which means the phase is ended and the next phase
-            should be run.*/
-            if (endPhaseTime==count) {
-            /*
-            Day Mode:
-            TICSModes is a simple class that keeps track of the current mode to figure out
-            whether timings need to be changed or not (night times have shorter times than
-            day times).
-            * */
-                if (currentMode == TICSModes.DayMode) {
+            switch (currentMode) {
+                case NightMode:
+                case DayMode:
                     currentPhase = findNextPhase(currentPhase);
-                    endPhaseTime = count + currentPhase.phaseTime;
                     displayCurrentPhase(currentPhase);
-                }
-
-//        if (true) {
-//            if (count % 6 == 0) {
-//                north_south_color = SignalColor.GREEN;
-//                east_west_color = SignalColor.RED;
-//            } else if (count % 6 == 1) {
-//                north_south_color = SignalColor.YELLOW;
-//                east_west_color = SignalColor.RED;
-//            } else if (count % 6 == 2) {
-//                north_south_color = SignalColor.RED;
-//                east_west_color = SignalColor.RED;
-//            } else if (count % 6 == 3) {
-//                north_south_color = SignalColor.RED;
-//                east_west_color = SignalColor.GREEN;
-//            } else if (count % 6 == 4) {
-//                north_south_color = SignalColor.RED;
-//                east_west_color = SignalColor.YELLOW;
-//            } else if (count % 6 == 4) {
-//                north_south_color = SignalColor.RED;
-//                east_west_color = SignalColor.YELLOW;
-//            } else {
-//                north_south_color = SignalColor.RED;
-//                east_west_color = SignalColor.RED;
-//            }
-//
-//        }
-
-                //night mode code goes here
-                else if (currentMode == TICSModes.NightMode) {
+                    break;
+                case EmergencyMode:
+                    // EmergencyMode code goes here
+                    //Remember that at any point, whenever an emergency car is needed,
+                    //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
+                    //In the next second, the program will do whatever you put in doSomething
+                    break;
+                case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
-                    endPhaseTime = count + currentPhase.phaseTime;
                     displayCurrentPhase(currentPhase);
-                }
+
+                    /*
+                        Resets the current first lane in order to not reconsider that lane
+                        to allow passage
+                     */
+                    if(currentPhase == Phases.ALL_RED1 && firstLane != null) {
+                        fastestArrival = 0;
+                        firstLane.setArriveTime(0);
+                        firstLane = null;
+                    }
+                    break;
             }
-            System.out.println("CURRENT PHASE: "+currentPhase.toString());
 
-
-            /*
-            This changes our grouping of lanes to the colors specified above.
-             */
-//            for(Lanes l: north_south)
-//            {
-//                l.setColor(north_south_color);
-//            }
-//            for(Lanes l: east_west)
-//            {
-//                l.setColor(east_west_color);
-//            }
-//            Lights.WEST.setColor(SignalColor.GREEN);
-            count ++;
-
-
-           // testSensors();
+            //System.out.println("CURRENT PHASE: " + currentPhase.toString());
+            //count ++;
+            //testSensors();
 
             try {
-                sleep(3000);
+                sleep(currentPhase.getPhaseTime());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -182,8 +99,12 @@ class TestTCS extends Thread {
     print if each has traffic waiting on it
     */
     private void testSensors() {
+        long fastestArrival = 0;
+        Lanes firstLaneArrival = null;
+
         for (Lanes l : Lanes.values()) {
-            System.out.println(l.toString() + " has car waiting: " + l.isCarOnLane());
+           // System.out.println(l.toString() + " has car waiting: " + l.isCarOnLane());
+            //System.out.println("Car arrived on " + l.toString() + " at " + l.getArriveTime());
         }
 
         for (Lights l : Lights.values()){
@@ -192,24 +113,103 @@ class TestTCS extends Thread {
     }
 
     private void displayCurrentPhase(Phases currentPhase) {
-        if (currentPhase.greenLanes!=null) {
-            for (Lanes greenLane : currentPhase.greenLanes) {
+        if (currentPhase.getGreenLanes() != null) {
+            for (Lanes greenLane : currentPhase.getGreenLanes()) {
                 greenLane.setColor(SignalColor.GREEN);
             }
         }
-        if(currentPhase.yellowLanes!=null) {
-            for (Lanes yellowLane : currentPhase.yellowLanes) {
+        if(currentPhase.getYellowLanes() != null) {
+            for (Lanes yellowLane : currentPhase.getYellowLanes()) {
                 yellowLane.setColor(SignalColor.YELLOW);
             }
         }
-        if (currentPhase.redLanes!=null){
-            for(Lanes redLane: currentPhase.redLanes){
+        if (currentPhase.getRedLanes() != null){
+            for(Lanes redLane: currentPhase.getRedLanes()){
                 redLane.setColor(SignalColor.RED);
             }
         }
     }
 
-    public Phases findNextPhase(Phases currentPhase){
+    private Phases findNextPhase(Phases currentPhase){
+        /*
+          Finds the next possible phase when in Malfunction Mode.
+          The intersection will turn into a four way stop and will
+          allow passage only to the vehicle that gets into the intersection
+          first.
+         */
+        if(currentMode == TICSModes.MalfunctionMode) {
+
+            // All phases will loop back to red immediately, to give it the illusion
+            // that only one set of vehicles is allowed to pass
+            switch (currentPhase) {
+                case NS_GREEN:
+                case EW_GREEN:
+                case FOURWAY_N_GREEN:
+                case FOURWAY_S_GREEN:
+                case FOURWAY_E_GREEN:
+                case FOURWAY_W_GREEN:
+                    return Phases.ALL_RED1;
+            }
+
+            /*
+              Iterates through the available lanes and checks to see which one was occupies
+              by a vehicle first.
+             */
+            for(Lanes l : Lanes.values()) {
+                if(l.getArriveTime() != 0) {
+                    if ((fastestArrival == 0 || l.getArriveTime() < fastestArrival)) {
+                        fastestArrival = l.getArriveTime();
+                        firstLane = l;
+                    }
+                }
+            }
+
+            // When no vehicles are present in the intersection, we will act as if the
+            // intersection was all red, to allow pedestrians to cross
+            if(firstLane == null) {
+                return Phases.ALL_RED1;
+            }
+
+            /*
+              Once we find what lane was the first one to have a vehicle in, we will determine
+              what to do depending on a lane.
+
+              If the vehicle is in any of the left turn lanes, i.e. any lane with "1", we will
+              allow passage of all three vehicles in the road, but only to that road.
+
+              If the vehicle is in any other lane than the turning lanes, we can allow passage to
+              the vehicles in the non left-turn lanes for the current road and the road parallel
+              to it, heading in the opposite direction.
+             */
+            switch (firstLane) {
+                case N1:
+                    return Phases.FOURWAY_N_GREEN;
+                case S1:
+                    return Phases.FOURWAY_S_GREEN;
+                case N2:
+                case N3:
+                case S2:
+                case S3:
+                    return Phases.NS_GREEN;
+                case E1:
+                    return Phases.FOURWAY_E_GREEN;
+                case W1:
+                    return Phases.FOURWAY_W_GREEN;
+                case E2:
+                case E3:
+                case W2:
+                case W3:
+                    return Phases.EW_GREEN;
+                default:
+                    return Phases.ALL_RED1;
+            }
+        }
+
+        /*
+          This encompases all the phases possible during Day and Night Mode operations. Due to this,
+          both Modes have been implemented in the switch statement, with a few conditionals to help
+          determine when things should happen in each mode.
+         */
         switch (currentPhase) {
             case NS_LEFT_GREEN:
                 return Phases.NS_LEFT_YELLOW;
@@ -222,64 +222,72 @@ class TestTCS extends Thread {
             case NS_YELLOW:
                 return Phases.ALL_RED2;
             case ALL_RED2:
+                // Want to allow passage to vehicles in left turn only if they are present in that lane
+                if(currentMode == TICSModes.NightMode) {
+                    return (Lanes.E1.isCarOnLane() || Lanes.W1.isCarOnLane()) ? Phases.EW_LEFT_GREEN : Phases.EW_GREEN;
+                }
                 return Phases.EW_LEFT_GREEN;
             case EW_LEFT_GREEN:
                 return Phases.EW_LEFT_YELLOW;
             case EW_LEFT_YELLOW:
                 return Phases.ALL_RED3;
             case ALL_RED3:
-               return Phases.EW_GREEN;
+                return Phases.EW_GREEN;
             case EW_GREEN:
+                // If no vehicles are present in the less busy street, in our case, the North and South roads, then
+                // we don't want to change the lights of the main road, in order to allow more vehicles to move through
+                if(currentMode == TICSModes.NightMode) {
+                    return (Lanes.S1.isCarOnLane() || Lanes.N1.isCarOnLane()
+                            || Lanes.S2.isCarOnLane() || Lanes.N2.isCarOnLane()) ? Phases.EW_YELLOW : Phases.EW_GREEN;
+                }
                 return Phases.EW_YELLOW;
             case EW_YELLOW:
                 return Phases.ALL_RED4;
             case ALL_RED4:
+                // Want to allow passage to vehicles in left turn only if they are present in that lane
+                if(currentMode == TICSModes.NightMode) {
+                    return (Lanes.N1.isCarOnLane() || Lanes.S1.isCarOnLane()) ? Phases.NS_LEFT_GREEN : Phases.NS_GREEN;
+                }
                 return Phases.NS_LEFT_GREEN;
             default:
                 System.out.println("There's no following case for the current phase in the switch!");
         }
-        return null;
+
+        return Phases.ALL_RED4;
     }
 
-
     /**
-     * changeToNightTimes
-     * In an effort to save duplicate classes such as having dayPhases and nightPhases enum,
-     * changeToNightTimes and changeToDayTimes were written.
-     * They simply go through each phase and change the hardcoded times.
-     * I did not add a paramter as phases might last longer than others
+     * Provides a way to change the timings of the phases according to the mode in which the TICS is
+     * operating on.
+     *
+     * Note: Day Mode and Night Mode have the same timings, but behave differently. Malfunction mode
+     * has timings that allow us to make the intersection act like a four way stop.
      */
-    public void changeToNightTimes(){
-        Phases.NS_LEFT_YELLOW.changePhaseTime(3);
-        Phases.NS_LEFT_GREEN.changePhaseTime(3);
-        Phases.EW_LEFT_GREEN.changePhaseTime(3);
-        Phases.EW_LEFT_YELLOW.changePhaseTime(3);
-        Phases.NS_GREEN.changePhaseTime(3);
-        Phases.NS_YELLOW.changePhaseTime(3);
-        Phases.EW_GREEN.changePhaseTime(3);
-        Phases.EW_YELLOW.changePhaseTime(3);
-        Phases.ALL_RED1.changePhaseTime(3);
-        Phases.ALL_RED2.changePhaseTime(3);
-        Phases.ALL_RED3.changePhaseTime(3);
-        Phases.ALL_RED4.changePhaseTime(3);
-    }
-
-    /**
-     * This method simply goes through each phase and changes to hardcoded times.
-     * I did not add a paramter as phases might last longer than others
-     * */
-    public void changeToDayTimes(){
-        Phases.NS_LEFT_YELLOW.changePhaseTime(2);
-        Phases.NS_LEFT_GREEN.changePhaseTime(2);
-        Phases.EW_LEFT_GREEN.changePhaseTime(2);
-        Phases.EW_LEFT_YELLOW.changePhaseTime(2);
-        Phases.NS_GREEN.changePhaseTime(2);
-        Phases.NS_YELLOW.changePhaseTime(2);
-        Phases.EW_GREEN.changePhaseTime(2);
-        Phases.EW_YELLOW.changePhaseTime(2);
-        Phases.ALL_RED1.changePhaseTime(2);
-        Phases.ALL_RED2.changePhaseTime(2);
-        Phases.ALL_RED3.changePhaseTime(2);
-        Phases.ALL_RED4.changePhaseTime(2);
+    public void changeLightTimes() {
+        switch (currentMode){
+            case NightMode:
+            case DayMode:
+                Phases.NS_LEFT_YELLOW.setPhaseTime(4000);
+                Phases.NS_LEFT_GREEN.setPhaseTime(4000);
+                Phases.EW_LEFT_GREEN.setPhaseTime(4000);
+                Phases.EW_LEFT_YELLOW.setPhaseTime(3000);
+                Phases.NS_GREEN.setPhaseTime(6000);
+                Phases.NS_YELLOW.setPhaseTime(2000);
+                Phases.EW_GREEN.setPhaseTime(6000);
+                Phases.EW_YELLOW.setPhaseTime(2000);
+                Phases.ALL_RED1.setPhaseTime(3000);
+                Phases.ALL_RED2.setPhaseTime(3000);
+                Phases.ALL_RED3.setPhaseTime(3000);
+                Phases.ALL_RED4.setPhaseTime(3000);
+                break;
+            case MalfunctionMode:
+                Phases.EW_GREEN.setPhaseTime(300);
+                Phases.NS_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_N_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_S_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_E_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_W_GREEN.setPhaseTime(300);
+                Phases.ALL_RED1.setPhaseTime(3000);
+        }
     }
 }
