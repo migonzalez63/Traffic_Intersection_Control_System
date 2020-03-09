@@ -17,11 +17,13 @@ public enum Lanes {
     private boolean carOnLane;
     private boolean emergencyOnLane;
     private SignalColor color;
+    private long arriveTime;
 
     Lanes(boolean carOnLane, boolean emergencyOnLane, SignalColor color) {
         this.carOnLane = carOnLane;
         this.emergencyOnLane = emergencyOnLane;
         this.color = color;
+        this.arriveTime = 0;
     }
 
     public boolean isCarOnLane(){
@@ -47,6 +49,12 @@ public enum Lanes {
 
     public SignalColor getSignal(){
         return color;
+    }
+
+    public long getArriveTime() { return arriveTime; }
+
+    public void setArriveTime(long arrivalTime) {
+        this.arriveTime = arrivalTime;
     }
 
 }
