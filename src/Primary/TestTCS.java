@@ -51,76 +51,66 @@ class TestTCS extends Thread {
 
         SignalColor is an enum holding possible signal colors.
          */
-        SignalColor north_south_color, east_west_color;
+       // SignalColor north_south_color, east_west_color;
 
         /*
         This is a useful way of grouping lights by direction.
         Here we are grouping parallel directions north with south, and east with west.
          */
-        LinkedList<Lanes> north_south = new LinkedList<>();
-        LinkedList<Lanes> east_west = new LinkedList<>();
-        Phases currentPhase= Phases.ALL_RED;
+        //LinkedList<Lanes> north_south = new LinkedList<>();
+        //LinkedList<Lanes> east_west = new LinkedList<>();
+        Phases currentPhase= Phases.ALL_RED1;
+        TICSModes currentMode = TICSModes.DayMode;
         int endPhaseTime=0;
-        for(Lanes l: Lanes.values())
-        {
-            if(l.toString().contains("N") || l.toString().contains("S")) north_south.add(l);
-            else east_west.add(l);
-        }
+//        for(Lanes l: Lanes.values())
+//        {
+//            if(l.toString().contains("N") || l.toString().contains("S")) north_south.add(l);
+//            else east_west.add(l);
+//        }
 
 
         while(running){
-            /*
-            This is a simple way of alternating the states of signal colors on a timed basis.
-             */
 
-            /*
-            Day Mode:
-            For day mode, int endPhaseTime and Phase currentPhase were added.
+            /*Emergency Mode code goes below: */
+
+            if (currentMode==TICSModes.EmergencyMode){
+                //doSomething
+                //Remember that at any point, whenever an emergency car is needed,
+                //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
+                //In the next second, the program will do whatever you put in doSomething
+            }
+            /*Malfunction Mode code goes here: */
+            else if (currentMode==TICSModes.MalfunctionMode){
+                //doSomething
+                //Remember that at any point, whenever a malfunction happens,
+                //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
+                //In the next second, the program will do whatever you put in doSomething
+            }
+            else if (currentMode==TICSModes.DayMode){
+                changeToDayTimes();
+            }
+            else if (currentMode==TICSModes.NightMode){
+                changeToNightTimes();
+            }
+            /*For day mode, int endPhaseTime and Phase currentPhase were added.
             endPhaseTime is an integer that, when phases are changed, it adds the current
             counter time to however many seconds a phase is supposed to last
             (Example: if counter is 4 and ALL_RED phase is 5, endPhaseTime is 9). It later
             checks to see if counter is 9, which means the phase is ended and the next phase
-            should be run.
-            currentPhase is a global Phase used to keep track of the currentPhase. It is used
-            in a switch statement to change the ordering of phases when the count and the
-            endPhaseTime are the same.
+            should be run.*/
+            if (endPhaseTime==count) {
+            /*
+            Day Mode:
+            TICSModes is a simple class that keeps track of the current mode to figure out
+            whether timings need to be changed or not (night times have shorter times than
+            day times).
             * */
-            if(endPhaseTime==count) {
-                switch (currentPhase) {
-                    case ALL_RED:
-                        currentPhase = Phases.NS_LEFT_GREEN;
-                        break;
-                    case NS_LEFT_GREEN:
-                        currentPhase = Phases.NS_LEFT_YELLOW;
-                        break;
-                    case NS_LEFT_YELLOW:
-                        currentPhase = Phases.EW_LEFT_GREEN;
-                        break;
-                    case EW_LEFT_GREEN:
-                        currentPhase = Phases.EW_LEFT_YELLOW;
-                        break;
-                    case EW_LEFT_YELLOW:
-                        currentPhase = Phases.NS_GREEN;
-                        break;
-                    case NS_GREEN:
-                        currentPhase = Phases.NS_YELLOW;
-                        break;
-                    case NS_YELLOW:
-                        currentPhase = Phases.EW_GREEN;
-                        break;
-                    case EW_GREEN:
-                        currentPhase = Phases.EW_YELLOW;
-                        break;
-                    case EW_YELLOW:
-                        currentPhase=Phases.ALL_RED;
-                        break;
-                    default:
-                        System.out.println("There's no following case for the current phase in the switch!");
+                if (currentMode == TICSModes.DayMode) {
+                    currentPhase = findNextPhase(currentPhase);
+                    endPhaseTime = count + currentPhase.phaseTime;
+                    displayCurrentPhase(currentPhase);
                 }
-                endPhaseTime = count + currentPhase.phaseTime;
-                displayCurrentPhase(currentPhase);
-            }
-            System.out.println("CURRENT PHASE: "+currentPhase.toString());
+
 //        if (true) {
 //            if (count % 6 == 0) {
 //                north_south_color = SignalColor.GREEN;
@@ -147,12 +137,15 @@ class TestTCS extends Thread {
 //
 //        }
 
-            //night mode code goes here
-            
-            //emergency mode code goes here
+                //night mode code goes here
+                else if (currentMode == TICSModes.NightMode) {
+                    currentPhase = findNextPhase(currentPhase);
+                    endPhaseTime = count + currentPhase.phaseTime;
+                    displayCurrentPhase(currentPhase);
+                }
+            }
+            System.out.println("CURRENT PHASE: "+currentPhase.toString());
 
-            //malfunction mode code goes here
-            
 
             /*
             This changes our grouping of lanes to the colors specified above.
@@ -216,4 +209,77 @@ class TestTCS extends Thread {
         }
     }
 
+    public Phases findNextPhase(Phases currentPhase){
+        switch (currentPhase) {
+            case NS_LEFT_GREEN:
+                return Phases.NS_LEFT_YELLOW;
+            case NS_LEFT_YELLOW:
+                return Phases.ALL_RED1;
+            case ALL_RED1:
+                return Phases.NS_GREEN;
+            case NS_GREEN:
+                return Phases.NS_YELLOW;
+            case NS_YELLOW:
+                return Phases.ALL_RED2;
+            case ALL_RED2:
+                return Phases.EW_LEFT_GREEN;
+            case EW_LEFT_GREEN:
+                return Phases.EW_LEFT_YELLOW;
+            case EW_LEFT_YELLOW:
+                return Phases.ALL_RED3;
+            case ALL_RED3:
+               return Phases.EW_GREEN;
+            case EW_GREEN:
+                return Phases.EW_YELLOW;
+            case EW_YELLOW:
+                return Phases.ALL_RED4;
+            case ALL_RED4:
+                return Phases.NS_LEFT_GREEN;
+            default:
+                System.out.println("There's no following case for the current phase in the switch!");
+        }
+        return null;
+    }
+
+
+    /**
+     * changeToNightTimes
+     * In an effort to save duplicate classes such as having dayPhases and nightPhases enum,
+     * changeToNightTimes and changeToDayTimes were written.
+     * They simply go through each phase and change the hardcoded times.
+     * I did not add a paramter as phases might last longer than others
+     */
+    public void changeToNightTimes(){
+        Phases.NS_LEFT_YELLOW.changePhaseTime(3);
+        Phases.NS_LEFT_GREEN.changePhaseTime(3);
+        Phases.EW_LEFT_GREEN.changePhaseTime(3);
+        Phases.EW_LEFT_YELLOW.changePhaseTime(3);
+        Phases.NS_GREEN.changePhaseTime(3);
+        Phases.NS_YELLOW.changePhaseTime(3);
+        Phases.EW_GREEN.changePhaseTime(3);
+        Phases.EW_YELLOW.changePhaseTime(3);
+        Phases.ALL_RED1.changePhaseTime(3);
+        Phases.ALL_RED2.changePhaseTime(3);
+        Phases.ALL_RED3.changePhaseTime(3);
+        Phases.ALL_RED4.changePhaseTime(3);
+    }
+
+    /**
+     * This method simply goes through each phase and changes to hardcoded times.
+     * I did not add a paramter as phases might last longer than others
+     * */
+    public void changeToDayTimes(){
+        Phases.NS_LEFT_YELLOW.changePhaseTime(2);
+        Phases.NS_LEFT_GREEN.changePhaseTime(2);
+        Phases.EW_LEFT_GREEN.changePhaseTime(2);
+        Phases.EW_LEFT_YELLOW.changePhaseTime(2);
+        Phases.NS_GREEN.changePhaseTime(2);
+        Phases.NS_YELLOW.changePhaseTime(2);
+        Phases.EW_GREEN.changePhaseTime(2);
+        Phases.EW_YELLOW.changePhaseTime(2);
+        Phases.ALL_RED1.changePhaseTime(2);
+        Phases.ALL_RED2.changePhaseTime(2);
+        Phases.ALL_RED3.changePhaseTime(2);
+        Phases.ALL_RED4.changePhaseTime(2);
+    }
 }
