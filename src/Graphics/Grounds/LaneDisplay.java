@@ -7,6 +7,8 @@ import Primary.SignalColor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
 
+import java.util.Calendar;
+
 
 public class LaneDisplay extends Ground {
 
@@ -15,6 +17,7 @@ public class LaneDisplay extends Ground {
     private Boolean in; // ingoing or outgoing lane
     private Boolean isMid = false;
     private CarSignalDisplay carSignalDisplay;
+    private long startTime;
 
     private double laneX = 0;
     private double laneY = 0;
@@ -31,6 +34,7 @@ public class LaneDisplay extends Ground {
         this.count = count;
         this.laneLength = (this.gc.getCanvas().getWidth() - 100) / 2;
         this.carSignalDisplay = new CarSignalDisplay(); // each lane get's a carSignalDisplay but not drawn unless it's incoming
+        this.startTime = System.nanoTime();
 
         setIncoming(); // determine whether incoming or leaving lane
         setLanes(); // assign each LaneDisplay object a reference to the proper Lanes enum object
@@ -46,6 +50,10 @@ public class LaneDisplay extends Ground {
     //
     public void setCarOnSensor(Boolean val){
         if (lane.isCarOnLane() != val) lane.setCarOnLane(val);
+
+        // Takes into account when the program executed and substracts that whenever thee
+        // method is invoked to determine at what time a car arrived at that lane
+        lane.setArriveTime(System.nanoTime() - startTime);
     }
 
     // Triggers the lane sensor there is an emergency spawned
