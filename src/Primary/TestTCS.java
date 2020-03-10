@@ -24,9 +24,13 @@ import java.util.Arrays;
  */
 class TestTCS extends Thread {
     private Boolean running = true;
+    private TICSModes beforeEmergencyMode = TICSModes.DayMode;
+    private Phases beforeEmergencyPhase= null;
     private TICSModes currentMode = TICSModes.DayMode;
     private Lanes firstLane = null;
+    private Lanes possibleEmergency = null;
     private long fastestArrival = 0;
+
 
     /**
      * TestTCS.begin() is the communication point between the testbed and the
@@ -51,7 +55,20 @@ class TestTCS extends Thread {
 
         while(running){
             changeLightTimes();
-
+            //This logic is added here to check for an emergency
+            //vehicle at any iteration before switching on TICS mode
+            Lanes possibleEmergency = detectEmergency();
+            //When the current mode is Day or Night mode and an emergency vehicle is first detected
+            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
+                beforeEmergencyMode=currentMode;
+                beforeEmergencyPhase=currentPhase;
+                currentMode=TICSModes.EmergencyMode;
+            }
+            //When the current mode is emergency mode and there is no longer an emergency vehicle around
+            else if (currentMode==TICSModes.EmergencyMode && possibleEmergency==null){
+                    currentMode=beforeEmergencyMode;
+                    currentPhase=beforeEmergencyPhase;
+            }
             switch (currentMode) {
                 case NightMode:
                 case DayMode:
@@ -64,6 +81,8 @@ class TestTCS extends Thread {
                     //Remember that at any point, whenever an emergency car is needed,
                     //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
                     //In the next second, the program will do whatever you put in doSomething
+                    currentPhase=Phases.ALL_RED1;
+                    displayEmergencyLane(possibleEmergency);
                     break;
                 case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
@@ -201,6 +220,11 @@ class TestTCS extends Thread {
         }
     }
 
+    private void displayEmergencyLane(Lanes emergencyLane){
+        displayCurrentPhase(Phases.ALL_RED1);
+        emergencyLane.setColor(SignalColor.GREEN);
+    }
+
     private Phases findNextPhase(Phases currentPhase){
         /*
           Finds the next possible phase when in Malfunction Mode.
@@ -275,6 +299,7 @@ class TestTCS extends Thread {
                     return Phases.ALL_RED1;
             }
         }
+
 
         /*
           This encompases all the phases possible during Day and Night Mode operations. Due to this,
@@ -359,6 +384,8 @@ class TestTCS extends Thread {
                 Phases.FOURWAY_E_GREEN.setPhaseTime(300);
                 Phases.FOURWAY_W_GREEN.setPhaseTime(300);
                 Phases.ALL_RED1.setPhaseTime(3000);
+            case EmergencyMode:
+                Phases.ALL_RED1.setPhaseTime(1000);
         }
     }
     private void allowPedestriansToCross(Phases currentPhase,TICSModes mode){
@@ -385,5 +412,13 @@ class TestTCS extends Thread {
 
     private void stopPedestrianLights(){
         Arrays.stream(Lights.values()).forEach(light -> light.setColor(SignalColor.RED));
+    }
+    public Lanes detectEmergency(){
+        for (Lanes l: Lanes.values()){
+            if (l.getEmergencyOnLane()){
+                return l;
+            }
+        }
+        return null;
     }
 }
