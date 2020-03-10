@@ -103,7 +103,7 @@ public class LaneDisplay extends Ground {
         SignalColor c = lane.getSignal(); // Checks what the TC set this lane's signal as
 
         if (c == SignalColor.GREEN){
-           color = Paint.valueOf("#009900");
+            color = Paint.valueOf("#009900");
         } else if (c == SignalColor.YELLOW){
             color = Paint.valueOf("#ffff4d");
         } else if (c == SignalColor.BLACK){

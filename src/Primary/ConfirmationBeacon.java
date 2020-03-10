@@ -4,22 +4,22 @@ package Primary;
  * @author Hector Castillo Martinez
  */
 public enum ConfirmationBeacon {
-    NORTH (0, false, false, 0),
-    EAST (1, false, false, 0),
-    SOUTH (2, false, false, 0),
-    WEST (3, false, false, 0);
+    NORTH (false, false, 0),
+    EAST (false, false, 0),
+    SOUTH (false, false, 0),
+    WEST (false, false, 0);
 
-    private final int ID;
     private boolean inPath;
     private boolean isIlluminated;
     private int mode;
+    private BeaconColor bc;
 
-    ConfirmationBeacon (int ID, boolean inPath, boolean isIlluminated,
+    ConfirmationBeacon (boolean inPath, boolean isIlluminated,
                         int mode){
-        this.ID = ID;
         this.inPath = inPath;
         this.isIlluminated = isIlluminated;
         this.mode = mode;
+        bc = BeaconColor.BLACK;
     }
 
     public boolean isIlluminated() {
@@ -30,12 +30,16 @@ public enum ConfirmationBeacon {
         return inPath;
     }
 
-    public int getID() {
-        return ID;
-    }
-
     public int getMode() {
         return mode;
+    }
+
+    public BeaconColor getBeaconColor(){
+        return bc;
+    }
+
+    public void changeColor(BeaconColor color){
+        bc = color;
     }
 
     public void setInPath(boolean inPath) {
