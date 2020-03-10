@@ -1,6 +1,9 @@
 package Primary;
 
 import Graphics.Grounds.LaneDisplay;
+import com.sun.tools.jconsole.JConsoleContext;
+
+import java.util.Arrays;
 
 /**
  * TestTCS is the access point for Traffic Control System (TCS) interaction with the testbed.
@@ -63,6 +66,7 @@ class TestTCS extends Thread {
                     break;
                 case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
+
                     displayCurrentPhase(currentPhase);
 
                     /*
@@ -83,6 +87,8 @@ class TestTCS extends Thread {
 
             try {
                 sleep(currentPhase.getPhaseTime());
+                stopPedestrianLights();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -115,6 +121,7 @@ class TestTCS extends Thread {
     private void displayCurrentPhase(Phases currentPhase) {
         if (currentPhase.getGreenLanes() != null) {
             for (Lanes greenLane : currentPhase.getGreenLanes()) {
+                allowPedestriansToCross(currentPhase,currentMode);
                 greenLane.setColor(SignalColor.GREEN);
             }
         }
@@ -289,5 +296,31 @@ class TestTCS extends Thread {
                 Phases.FOURWAY_W_GREEN.setPhaseTime(300);
                 Phases.ALL_RED1.setPhaseTime(3000);
         }
+    }
+    private void allowPedestriansToCross(Phases currentPhase,TICSModes mode){
+
+
+        boolean northSouth = currentPhase.getNSPedestrians();
+        boolean eastWest =currentPhase.getEWPedestrians();
+        if(mode.equals(TICSModes.DayMode )) {
+            for (Lights l : Lights.values()) {
+                //is pedestrian at Light l:(n/e/s/w)
+                if (l.isPedestrianAt()) {
+                    //is it safe to cross according to the phase?
+                    if (eastWest && (l.toString().equals("NORTH") || l.toString().equals("SOUTH")))
+                        l.setColor(SignalColor.GREEN);
+                    if (northSouth && (l.toString().equals("EAST") || l.toString().equals("WEST")))
+                        l.setColor(SignalColor.GREEN);
+                }
+            }
+        }
+        if(mode.equals(TICSModes.NightMode)){
+            //todo possibly new phases? else just make it react like day mode
+
+        }
+    }
+
+    private void stopPedestrianLights(){
+        Arrays.stream(Lights.values()).forEach(light -> light.setColor(SignalColor.RED));
     }
 }
