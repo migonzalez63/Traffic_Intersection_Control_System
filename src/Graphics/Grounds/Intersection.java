@@ -4,7 +4,10 @@ import Graphics.Direction;
 import Graphics.Simulation;
 import Graphics.Traffic.Pedestrian;
 import javafx.scene.canvas.GraphicsContext;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class Intersection extends Ground {
@@ -13,6 +16,7 @@ public class Intersection extends Ground {
     private double size = Simulation.size;
     private LinkedList<RoadDisplay> roads = new LinkedList<>();
     private LinkedList<Crossing> crosswalks = new LinkedList<>();
+    private List<BeaconDisplay> beacons = new ArrayList<>();
 
 
     public Intersection(GraphicsContext gc){
@@ -25,10 +29,13 @@ public class Intersection extends Ground {
     //
     public void draw(){
         gc.fillRect(x , y, size, size);
-
         for (RoadDisplay r : roads) {
             r.drawRoad();
        }
+
+        for(BeaconDisplay b : beacons){
+            b.drawBeacon();
+        }
 
        for (Crossing c : crosswalks){
             c.draw();
@@ -51,6 +58,13 @@ public class Intersection extends Ground {
         Crossing cSouth = new Crossing(gc, roads.get(1), south, west);
         Crossing cEast = new Crossing(gc, roads.get(2), east, south);
         Crossing cWest = new Crossing(gc, roads.get(3), west, north);
+
+            //comment this in to get drawings of confirmation beacons. They
+        // fucked rn tho
+//        for(Direction d: Direction.values()){
+//            beacons.add(new BeaconDisplay(gc, d));
+//        }
+
 
         crosswalks.add(cNorth);
         crosswalks.add(cSouth);
