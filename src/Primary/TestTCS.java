@@ -24,7 +24,7 @@ import java.util.Arrays;
  */
 class TestTCS extends Thread {
     private Boolean running = true;
-    private TICSModes currentMode = TICSModes.MalfunctionMode;
+    private TICSModes currentMode = TICSModes.DayMode;
     private Lanes firstLane = null;
     private long fastestArrival = 0;
 

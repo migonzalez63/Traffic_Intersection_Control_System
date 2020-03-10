@@ -12,12 +12,10 @@ import javafx.scene.paint.Paint;
  */
 public class BeaconDisplay extends Ground{
     private GraphicsContext gc;
-    private double x;
     private Direction side;
-    private double y;
 
-    private ConfirmationBeacon confirmationBeacon; //ref to comp controlled
-    // by TC
+    //ref to comp controlled by the TC
+    private ConfirmationBeacon confirmationBeacon;
 
 
     public BeaconDisplay(GraphicsContext gc, Direction side){
@@ -26,7 +24,9 @@ public class BeaconDisplay extends Ground{
         setBeacons();
     }
 
-
+    /**
+     * Draws the Beacon and is used in Simulation to update the GUI.
+     */
     public void drawBeacon(){
         Paint color = Paint.valueOf("#000000");
         BeaconColor bc = confirmationBeacon.getBeaconColor();
@@ -35,7 +35,7 @@ public class BeaconDisplay extends Ground{
         double laneLength = (this.gc.getCanvas().getWidth() - 100) / 2;
 
         if(bc.equals(BeaconColor.WHITE)){
-            color = Paint.valueOf("#ffffff");
+            color = Paint.valueOf("#8a8a8a");
         } else if(bc.equals(BeaconColor.BLACK)){
             color = Paint.valueOf("#000000");
         } else if(bc.equals(BeaconColor.BLUE)){
@@ -45,14 +45,14 @@ public class BeaconDisplay extends Ground{
         gc.setFill(color);
 
         if (side == Direction.NORTH ) {
-            gc.fillRect(100, 100 + laneLength,
+            gc.fillRect(250, 100 + laneLength,
                     laneWidth, 4);
         } else if (side == Direction.SOUTH){
-            gc.fillRect(100, 70, laneWidth, 4);
+            gc.fillRect(285, 225, laneWidth, 4);
         } else if (side == Direction.EAST){
-            gc.fillRect(75, 50, 4, laneWidth);
+            gc.fillRect(225, 250, 4, laneWidth);
         } else if (side == Direction.WEST){
-            gc.fillRect(75 + laneLength, 50, 4,
+            gc.fillRect(100 + laneLength, 285, 4,
                     laneWidth);
         }
 
@@ -74,10 +74,18 @@ public class BeaconDisplay extends Ground{
         }
     }
 
+    /**
+     * Gets the x of the GC
+     * @return double
+     */
     public double getX() {
         return x;
     }
 
+    /**
+     * Gets the y of the GC
+     * @return double
+     */
     public double getY() {
         return y;
     }
