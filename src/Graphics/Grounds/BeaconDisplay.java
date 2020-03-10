@@ -1,7 +1,6 @@
 package Graphics.Grounds;
 
 import Graphics.Direction;
-import Graphics.Grounds.Ground;
 import Primary.BeaconColor;
 import Primary.ConfirmationBeacon;
 import javafx.scene.canvas.GraphicsContext;
