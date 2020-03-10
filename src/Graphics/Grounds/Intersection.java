@@ -59,11 +59,10 @@ public class Intersection extends Ground {
         Crossing cEast = new Crossing(gc, roads.get(2), east, south);
         Crossing cWest = new Crossing(gc, roads.get(3), west, north);
 
-            //comment this in to get drawings of confirmation beacons. They
-        // fucked rn tho
-//        for(Direction d: Direction.values()){
-//            beacons.add(new BeaconDisplay(gc, d));
-//        }
+        // setup confirmation beacon
+        for(Direction d: Direction.values()){
+            beacons.add(new BeaconDisplay(gc, d));
+        }
 
 
         crosswalks.add(cNorth);
