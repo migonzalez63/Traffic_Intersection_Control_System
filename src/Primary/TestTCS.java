@@ -302,7 +302,8 @@ class TestTCS extends Thread {
 
         boolean northSouth = currentPhase.getNSPedestrians();
         boolean eastWest =currentPhase.getEWPedestrians();
-        if(mode.equals(TICSModes.DayMode )) {
+        System.out.println(mode.toString());
+//        if(mode.equals(TICSModes.DayMode )) {
             for (Lights l : Lights.values()) {
                 //is pedestrian at Light l:(n/e/s/w)
                 if (l.isPedestrianAt()) {
@@ -313,11 +314,11 @@ class TestTCS extends Thread {
                         l.setColor(SignalColor.GREEN);
                 }
             }
-        }
-        if(mode.equals(TICSModes.NightMode)){
+//        }
+//        if(mode.equals(TICSModes.NightMode)){
             //todo possibly new phases? else just make it react like day mode
 
-        }
+//        }
     }
 
     private void stopPedestrianLights(){
