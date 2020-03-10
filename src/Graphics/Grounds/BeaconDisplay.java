@@ -35,7 +35,7 @@ public class BeaconDisplay extends Ground{
         double laneLength = (this.gc.getCanvas().getWidth() - 100) / 2;
 
         if(bc.equals(BeaconColor.WHITE)){
-            color = Paint.valueOf("#8a8a8a");
+            color = Paint.valueOf("#ffffff");
         } else if(bc.equals(BeaconColor.BLACK)){
             color = Paint.valueOf("#000000");
         } else if(bc.equals(BeaconColor.BLUE)){

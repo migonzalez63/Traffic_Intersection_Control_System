@@ -57,6 +57,7 @@ class TestTCS extends Thread {
                 case DayMode:
                     currentPhase = findNextPhase(currentPhase);
                     displayCurrentPhase(currentPhase);
+//                    new Thread(new Flasher(false)).start();
                     break;
                 case EmergencyMode:
                     // EmergencyMode code goes here
@@ -94,6 +95,69 @@ class TestTCS extends Thread {
             }
         }
         System.out.println("Test ended..");
+    }
+
+    /**
+     * Thread that is used to flash confirmation beacons.
+     * NOTE: If on running too long (2 minutes) flashing gets buggy. Maybe
+     * caused by
+     * conflicting threads.
+     */
+    class Flasher implements Runnable{
+
+        private boolean running;
+        private boolean ns;
+
+        /**
+         * Initialize with true if EV is traveling north-south.
+         * @param northSouth Boolean used to determine DOT
+         */
+        public Flasher(boolean northSouth){
+            running = true;
+            ns = northSouth;
+        }
+
+        public void setRunning(boolean running) {
+            this.running = running;
+        }
+
+        /**
+         * Set northSouth variable to true if EV is traveling that dir
+         * @param ns boolean
+         */
+        public void setNs(boolean ns) {
+            this.ns = ns;
+        }
+
+        @Override
+        public void run(){
+            while(running) {
+                if(ns) {
+                    try {
+                        ConfirmationBeacon.EAST.changeColor(BeaconColor.WHITE);
+                        ConfirmationBeacon.WEST.changeColor(BeaconColor.WHITE);
+                        sleep(1000);
+                        ConfirmationBeacon.EAST.changeColor(BeaconColor.BLACK);
+                        ConfirmationBeacon.WEST.changeColor(BeaconColor.BLACK);
+                        sleep(1000);
+                    } catch (InterruptedException i) {
+                        i.printStackTrace();
+                    }
+                } else{
+                    try {
+                        ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
+                        ConfirmationBeacon.SOUTH.changeColor(BeaconColor.WHITE);
+                        sleep(1000);
+                        ConfirmationBeacon.NORTH.changeColor(BeaconColor.BLACK);
+                        ConfirmationBeacon.SOUTH.changeColor(BeaconColor.BLACK);
+                        sleep(1000);
+                    } catch (InterruptedException i) {
+                        i.printStackTrace();
+                    }
+                }
+            }
+        }
+
     }
 
     public void end(){
