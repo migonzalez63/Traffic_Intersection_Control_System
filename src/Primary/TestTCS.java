@@ -103,6 +103,9 @@ class TestTCS extends Thread {
 
                     displayCurrentPhase(currentPhase);
 
+                    System.out.println("CURRENT PHASE: " + currentPhase);
+                    System.out.println("PHASE TIME: " + currentPhase.getPhaseTime());
+
                     /*
                         Resets the current first lane in order to not reconsider that lane
                         to allow passage
@@ -112,6 +115,7 @@ class TestTCS extends Thread {
                         firstLane.setArriveTime(0);
                         firstLane = null;
                     }
+
                     break;
             }
 
@@ -422,15 +426,17 @@ class TestTCS extends Thread {
                 Phases.ALL_RED4.setPhaseTime(3000);
                 break;
             case MalfunctionMode:
-                Phases.EW_GREEN.setPhaseTime(600);
-                Phases.NS_GREEN.setPhaseTime(600);
-                Phases.FOURWAY_N_GREEN.setPhaseTime(600);
-                Phases.FOURWAY_S_GREEN.setPhaseTime(600);
-                Phases.FOURWAY_E_GREEN.setPhaseTime(600);
-                Phases.FOURWAY_W_GREEN.setPhaseTime(600);
+                Phases.EW_GREEN.setPhaseTime(300);
+                Phases.NS_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_N_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_S_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_E_GREEN.setPhaseTime(300);
+                Phases.FOURWAY_W_GREEN.setPhaseTime(300);
                 Phases.ALL_RED1.setPhaseTime(3500);
+                break;
             case EmergencyMode:
                 Phases.ALL_RED1.setPhaseTime(1000);
+                break;
         }
     }
     private void allowPedestriansToCross(Phases currentPhase,TICSModes mode){
