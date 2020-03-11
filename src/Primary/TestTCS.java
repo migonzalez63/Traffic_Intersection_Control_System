@@ -28,6 +28,8 @@ import java.util.Arrays;
 // - Confirmation beacon needs to reset on reset press
 // - EV can get locked up if multiple EV arrivals occur at once. What happens
 // is left turn signals are just cycled over and over.
+// - EV gets locked when it comes from the West and TS only cycle N-S turn
+// signals on a loop
 // - It seems like when they reset EV still appear in the lanes but are just
 // undrawn.
 
@@ -512,7 +514,7 @@ class TestTCS extends Thread {
         boolean northSouth = currentPhase.getNSPedestrians();
         boolean eastWest =currentPhase.getEWPedestrians();
 
-        if(mode.equals(TICSModes.DayMode )) {
+        if(mode.equals(TICSModes.DayMode ) || mode.equals(TICSModes.NightMode)) {
             for (Lights l : Lights.values()) {
                 //is pedestrian at Light l:(n/e/s/w)
                 if (l.isPedestrianAt()) {
@@ -527,10 +529,6 @@ class TestTCS extends Thread {
                     }
                 }
             }
-        }
-        if(mode.equals(TICSModes.NightMode)){
-            //todo possibly new phases? else just make it react like day mode
-
         }
     }
 
