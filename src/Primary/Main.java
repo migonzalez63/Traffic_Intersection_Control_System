@@ -129,7 +129,7 @@ public class Main extends Application {
         });
         malfunctionModeButton.setOnMousePressed(e -> {
             controller.malfunctionMode(controlLabel);
-            DayNight.DAY.setDay(true);
+            DayNight.DAY.setDay(false);
             controller.setTICSMode(TICSModes.MalfunctionMode);
         });
 
