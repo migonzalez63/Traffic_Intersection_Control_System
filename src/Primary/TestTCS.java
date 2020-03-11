@@ -2,7 +2,6 @@ package Primary;
 
 import Graphics.Direction;
 import Graphics.Grounds.LaneDisplay;
-import com.sun.tools.jconsole.JConsoleContext;
 
 import java.util.Arrays;
 
@@ -44,6 +43,10 @@ class TestTCS extends Thread {
         //ResponsiveTest.run();
         //EmergencyModeTest.run();
 
+    }
+
+    public void setTICSMode(TICSModes mode){
+        this.currentMode = mode;
     }
 
     /*
@@ -414,12 +417,12 @@ class TestTCS extends Thread {
                 Phases.ALL_RED4.setPhaseTime(3000);
                 break;
             case MalfunctionMode:
-                Phases.EW_GREEN.setPhaseTime(300);
-                Phases.NS_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_N_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_S_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_E_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_W_GREEN.setPhaseTime(300);
+                Phases.EW_GREEN.setPhaseTime(600);
+                Phases.NS_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_N_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_S_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_E_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_W_GREEN.setPhaseTime(600);
                 Phases.ALL_RED1.setPhaseTime(3000);
             case EmergencyMode:
                 Phases.ALL_RED1.setPhaseTime(1000);
@@ -428,7 +431,7 @@ class TestTCS extends Thread {
     private void allowPedestriansToCross(Phases currentPhase,TICSModes mode){
         boolean northSouth = currentPhase.getNSPedestrians();
         boolean eastWest =currentPhase.getEWPedestrians();
-        System.out.println(mode.toString());
+
         if(mode.equals(TICSModes.DayMode )) {
             for (Lights l : Lights.values()) {
                 //is pedestrian at Light l:(n/e/s/w)

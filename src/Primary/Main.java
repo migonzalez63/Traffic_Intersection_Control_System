@@ -50,7 +50,8 @@ public class Main extends Application {
         Button rushButton = new Button("Rush Hour Traffic");
         Button heavyButton = new Button("Heavy Traffic");
         Button moderateButton = new Button("Moderate Traffic");
-        Button lightButton = new Button("Light Traffic");
+        Button malfunctionModeButton= new Button("Malfunction Mode");
+        Button lightButton = new Button("Night Mode");
         Button spawnCarButton = new Button("Spawn Car");
         Button spawnEmergencyButton = new Button("Spawn Emergency");
         Button spawnPedButton = new Button("Spawn Pedestrian");
@@ -74,6 +75,7 @@ public class Main extends Application {
 
 
         rushButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
+        malfunctionModeButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
         heavyButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
         moderateButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
         lightButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
@@ -90,6 +92,7 @@ public class Main extends Application {
 
 
         rushButton.setPrefSize(140, 30);
+        malfunctionModeButton.setPrefSize(140, 30);
         heavyButton.setPrefSize(140, 30);
         moderateButton.setPrefSize(140, 30);
         lightButton.setPrefSize(140, 30);
@@ -105,19 +108,31 @@ public class Main extends Application {
         rushButton.setOnMousePressed(e -> {
             controller.rushMode(controlLabel);
             DayNight.DAY.setDay(true);
+            controller.setTICSMode(TICSModes.DayMode);
         });
         heavyButton.setOnMousePressed(e -> {
             controller.heavyMode(controlLabel);
             DayNight.DAY.setDay(true);
+            controller.setTICSMode(TICSModes.DayMode);
+
         });
         moderateButton.setOnMousePressed(e -> {
             controller.moderateMode(controlLabel);
             DayNight.DAY.setDay(true);
+            controller.setTICSMode(TICSModes.DayMode);
+
         });
         lightButton.setOnMousePressed(e -> {
             controller.lightMode(controlLabel);
             DayNight.DAY.setDay(false);
+            controller.setTICSMode(TICSModes.NightMode);
         });
+        malfunctionModeButton.setOnMousePressed(e -> {
+            controller.malfunctionMode(controlLabel);
+            DayNight.DAY.setDay(true);
+            controller.setTICSMode(TICSModes.MalfunctionMode);
+        });
+
         spawnCarButton.setOnMousePressed(e -> controller.spawnCar());
         spawnEmergencyButton.setOnMousePressed(e -> controller.spawnEmergency());
         spawnPedButton.setOnMousePressed(e -> controller.spawnPed());
@@ -136,11 +151,11 @@ public class Main extends Application {
         carSpeedBox.getChildren().addAll(carLabel, carSpeedVal, driveFaster, driveSlower);
         pedSpeedBox.getChildren().addAll(pedLabel, pedSpeedVal, walkFaster, walkSlower);
         speedBox.getChildren().addAll(pedSpeedBox, carSpeedBox);
-        controlBox.getChildren().addAll(controlLabel, rushButton, heavyButton, moderateButton, lightButton, spawnCarButton, spawnEmergencyButton, spawnPedButton, resetButton, resultLabel, speedBox);
+        controlBox.getChildren().addAll(controlLabel, rushButton, heavyButton, moderateButton, lightButton,malfunctionModeButton, spawnCarButton, spawnEmergencyButton, spawnPedButton, resetButton, resultLabel, speedBox);
         root.setRight(controlBox);
         root.setLeft(canvas);
 
-        Scene scene = new Scene(root, 700, 550);
+        Scene scene = new Scene(root, 700, 650);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Traffic Control System: Testbed");
         primaryStage.show();
