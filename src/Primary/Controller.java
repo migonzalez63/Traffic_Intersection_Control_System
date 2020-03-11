@@ -143,6 +143,7 @@ public class Controller extends Thread{
     public void reset(){
         gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         spawnInterval.cancel(false);
+        test.resetCB();
         this.sim = new Simulation(gc);
     }
 
