@@ -7,13 +7,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
 
 /**
+ * Represent the Confirmation Beacons on the GUI.
  * @author Hector Castillo Martinez
  */
 public class BeaconDisplay extends Ground{
     private GraphicsContext gc;
     private Direction side;
 
-    //ref to comp controlled by the TC
     private ConfirmationBeacon confirmationBeacon;
 
 
@@ -29,16 +29,13 @@ public class BeaconDisplay extends Ground{
     public void drawBeacon(){
         Paint color = Paint.valueOf("#000000");
         BeaconColor bc = confirmationBeacon.getBeaconColor();
-        double laneWidth = (double)100/7; // denom is number of lanes in a
-        // single road
+        double laneWidth = (double)100/7;
         double laneLength = (this.gc.getCanvas().getWidth() - 100) / 2;
 
         if(bc.equals(BeaconColor.WHITE)){
             color = Paint.valueOf("#ffffff");
-        } else if(bc.equals(BeaconColor.BLACK)){
+        } else if(bc.equals(BeaconColor.BLACK)) {
             color = Paint.valueOf("#000000");
-        } else if(bc.equals(BeaconColor.BLUE)){
-            color = Paint.valueOf("#0324fc");
         }
 
         gc.setFill(color);

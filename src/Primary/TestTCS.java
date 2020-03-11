@@ -1,7 +1,6 @@
 package Primary;
 
-import Graphics.Direction;
-import Graphics.Grounds.LaneDisplay;
+import javafx.scene.media.AudioClip;
 
 import java.util.Arrays;
 
@@ -61,6 +60,9 @@ class TestTCS extends Thread {
 
         while(running){
             changeLightTimes();
+            // Comment this out if the sounds get annoying during testing.
+            // Might not need it in demo
+            pedWaitAction();
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
             Lanes possibleEmergency = detectEmergency();
@@ -135,7 +137,23 @@ class TestTCS extends Thread {
     }
 
     /**
-     *  Returns 1 if EV is traveling in a north or south lane.
+     * Used to beep on pedestrian signals that have people waiting.
+     * Will only beep once on initial arrival.
+     */
+    private void pedWaitAction(){
+        AudioClip note = new AudioClip(this.getClass().getResource(
+                "/Sounds/ped_tone.wav").toString());
+        for(Lights l: Lights.values()){
+            if(l.isPedestrianAt() && !l.isRung()){
+                l.setRung(true);
+                note.play();
+            }
+        }
+    }
+
+    /**
+     *  Returns 1 if EV is traveling in a north or south lane, 0 if none
+     *  detected, 2 if East or West.
      * @return int which denotes lane of travel.
      */
     private int getEmergencyPath(){
@@ -157,9 +175,6 @@ class TestTCS extends Thread {
 
     /**
      * Thread that is used to flash confirmation beacons.
-     * NOTE: If on running too long (2 minutes) flashing gets buggy. Maybe
-     * caused by
-     * conflicting threads.
      */
     class Flasher implements Runnable{
 
@@ -191,7 +206,9 @@ class TestTCS extends Thread {
         @Override
         public void run(){
             while(running) {
+
                 if(ns) {
+                    // North South DOT do: Flash East West, Solid North South.
                     ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
                     ConfirmationBeacon.SOUTH.changeColor(BeaconColor.WHITE);
                     try {
@@ -205,6 +222,7 @@ class TestTCS extends Thread {
                         i.printStackTrace();
                     }
                 } else{
+                    // East West DOT d0: flash North South, Solid East West.
                     ConfirmationBeacon.EAST.changeColor(BeaconColor.WHITE);
                     ConfirmationBeacon.WEST.changeColor(BeaconColor.WHITE);
                     try {
@@ -448,10 +466,14 @@ class TestTCS extends Thread {
                 //is pedestrian at Light l:(n/e/s/w)
                 if (l.isPedestrianAt()) {
                     //is it safe to cross according to the phase?
-                    if (eastWest && (l.toString().equals("NORTH") || l.toString().equals("SOUTH")))
+                    if (eastWest && (l.toString().equals("NORTH") || l.toString().equals("SOUTH"))){
                         l.setColor(SignalColor.GREEN);
-                    if (northSouth && (l.toString().equals("EAST") || l.toString().equals("WEST")))
+                        l.setRung(false);
+                    }
+                    if (northSouth && (l.toString().equals("EAST") || l.toString().equals("WEST"))){
                         l.setColor(SignalColor.GREEN);
+                        l.setRung(false);
+                    }
                 }
             }
         }
@@ -464,6 +486,7 @@ class TestTCS extends Thread {
     private void stopPedestrianLights(){
         Arrays.stream(Lights.values()).forEach(light -> light.setColor(SignalColor.RED));
     }
+
     public Lanes detectEmergency(){
         for (Lanes l: Lanes.values()){
             if (l.getEmergencyOnLane()){

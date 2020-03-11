@@ -7,6 +7,7 @@ import javafx.scene.paint.Paint;
 
 /**
  * Time of day display is used to overlay on GUI to denote time change
+ * @author Hector Castillo Martinez
  */
 public class TOD_Display{
     private GraphicsContext gc;
@@ -22,7 +23,8 @@ public class TOD_Display{
     }
 
     /**
-     * Used to draw the rects
+     * Used to draw the rects that denote time of day. Draw these before
+     * other GC.
      */
     public void drawOverlay(){
         Paint color;
@@ -31,7 +33,6 @@ public class TOD_Display{
         if(isDay){
             color = Color.rgb(255,255,255, .1);
         } else{
-//            color = Color.rgb(31, 42, 94,.1);
             color = Color.rgb(43, 47, 119,.1);
         }
 
