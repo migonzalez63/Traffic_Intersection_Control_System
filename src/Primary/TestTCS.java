@@ -25,11 +25,12 @@ import java.util.Arrays;
 
 // FIXME Bugs:
 // - Malfunction mode cannot handle emergency vehicles.
-// - Confirmation beacon needs to reset on reset press
 // - EV can get locked up if multiple EV arrivals occur at once. What happens
 // is left turn signals are just cycled over and over.
 // - EV gets locked when it comes from the West and TS only cycle N-S turn
 // signals on a loop
+// - It seems like when they reset EV still appear in the lanes but are just
+// undrawn.
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -87,6 +88,7 @@ class TestTCS extends Thread {
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
                 System.out.println("new thread");
+                System.out.println(possibleEmergency);
                 bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
                 t = new Thread(bcFlasher);
@@ -184,9 +186,7 @@ class TestTCS extends Thread {
 
     public void resetCB(){
         bcFlasher.setRunning(false);
-        for(Lanes l: Lanes.values()){
-            l.setEmergencyOnLane(false);
-        }
+        resetEmergenciesOnLanes();
         System.out.println("reset cb");
     }
 
@@ -544,5 +544,10 @@ class TestTCS extends Thread {
             }
         }
         return null;
+    }
+
+    public void resetEmergenciesOnLanes(){
+        Arrays.stream(Lanes.values()).forEach(lane -> lane.setEmergencyOnLane(false));
+
     }
 }
