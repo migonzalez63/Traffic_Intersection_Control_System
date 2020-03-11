@@ -30,8 +30,6 @@ import java.util.Arrays;
 // is left turn signals are just cycled over and over.
 // - EV gets locked when it comes from the West and TS only cycle N-S turn
 // signals on a loop
-// - It seems like when they reset EV still appear in the lanes but are just
-// undrawn.
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -186,6 +184,9 @@ class TestTCS extends Thread {
 
     public void resetCB(){
         bcFlasher.setRunning(false);
+        for(Lanes l: Lanes.values()){
+            l.setEmergencyOnLane(false);
+        }
         System.out.println("reset cb");
     }
 
