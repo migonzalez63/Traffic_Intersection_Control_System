@@ -1,7 +1,7 @@
 package Primary;
 
+import Graphics.Direction;
 import Graphics.Grounds.LaneDisplay;
-import com.sun.tools.jconsole.JConsoleContext;
 
 import java.util.Arrays;
 
@@ -45,12 +45,18 @@ class TestTCS extends Thread {
 
     }
 
+    public void setTICSMode(TICSModes mode){
+        this.currentMode = mode;
+    }
+
     /*
      * This is the old begin method. I kept it here for reference
      */
     public void testBegin() {
 
         Phases currentPhase= Phases.ALL_RED1;
+        Flasher bcFlasher =null;
+        Thread t;
         //int endPhaseTime=0;
 
         while(running){
@@ -60,12 +66,16 @@ class TestTCS extends Thread {
             Lanes possibleEmergency = detectEmergency();
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
+                bcFlasher = new Flasher((1 == getEmergencyPath()));
+                t = new Thread(bcFlasher);
+                t.start();
                 beforeEmergencyMode=currentMode;
                 beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
             }
             //When the current mode is emergency mode and there is no longer an emergency vehicle around
             else if (currentMode==TICSModes.EmergencyMode && possibleEmergency==null){
+                    bcFlasher.setRunning(false);
                     currentMode=beforeEmergencyMode;
                     currentPhase=beforeEmergencyPhase;
             }
@@ -117,6 +127,27 @@ class TestTCS extends Thread {
     }
 
     /**
+     *  Returns 1 if EV is traveling in a north or south lane.
+     * @return int which denotes lane of travel.
+     */
+    private int getEmergencyPath(){
+        int nSTravel = 0;
+        for(Lanes l: Lanes.values()){
+            if(l.getEmergencyOnLane()){
+                if(l.toString().contains("N") || l.toString().contains("S"))
+                {
+                    nSTravel = 1;
+                }
+
+                if(l.toString().contains("W") || l.toString().contains("E")){
+                    nSTravel = 2;
+                }
+            }
+        }
+        return nSTravel;
+    }
+
+    /**
      * Thread that is used to flash confirmation beacons.
      * NOTE: If on running too long (2 minutes) flashing gets buggy. Maybe
      * caused by
@@ -126,6 +157,7 @@ class TestTCS extends Thread {
 
         private boolean running;
         private boolean ns;
+        private final int timeWait = 500;
 
         /**
          * Initialize with true if EV is traveling north-south.
@@ -152,29 +184,37 @@ class TestTCS extends Thread {
         public void run(){
             while(running) {
                 if(ns) {
+                    ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
+                    ConfirmationBeacon.SOUTH.changeColor(BeaconColor.WHITE);
                     try {
                         ConfirmationBeacon.EAST.changeColor(BeaconColor.WHITE);
                         ConfirmationBeacon.WEST.changeColor(BeaconColor.WHITE);
-                        sleep(1000);
+                        sleep(timeWait);
                         ConfirmationBeacon.EAST.changeColor(BeaconColor.BLACK);
                         ConfirmationBeacon.WEST.changeColor(BeaconColor.BLACK);
-                        sleep(1000);
+                        sleep(timeWait);
                     } catch (InterruptedException i) {
                         i.printStackTrace();
                     }
                 } else{
+                    ConfirmationBeacon.EAST.changeColor(BeaconColor.WHITE);
+                    ConfirmationBeacon.WEST.changeColor(BeaconColor.WHITE);
                     try {
                         ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
                         ConfirmationBeacon.SOUTH.changeColor(BeaconColor.WHITE);
-                        sleep(1000);
+                        sleep(timeWait);
                         ConfirmationBeacon.NORTH.changeColor(BeaconColor.BLACK);
                         ConfirmationBeacon.SOUTH.changeColor(BeaconColor.BLACK);
-                        sleep(1000);
+                        sleep(timeWait);
                     } catch (InterruptedException i) {
                         i.printStackTrace();
                     }
                 }
             }
+            ConfirmationBeacon.EAST.changeColor(BeaconColor.BLACK);
+            ConfirmationBeacon.WEST.changeColor(BeaconColor.BLACK);
+            ConfirmationBeacon.NORTH.changeColor(BeaconColor.BLACK);
+            ConfirmationBeacon.SOUTH.changeColor(BeaconColor.BLACK);
         }
 
     }
@@ -380,12 +420,12 @@ class TestTCS extends Thread {
                 Phases.ALL_RED4.setPhaseTime(3000);
                 break;
             case MalfunctionMode:
-                Phases.EW_GREEN.setPhaseTime(300);
-                Phases.NS_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_N_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_S_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_E_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_W_GREEN.setPhaseTime(300);
+                Phases.EW_GREEN.setPhaseTime(600);
+                Phases.NS_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_N_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_S_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_E_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_W_GREEN.setPhaseTime(600);
                 Phases.ALL_RED1.setPhaseTime(3000);
             case EmergencyMode:
                 Phases.ALL_RED1.setPhaseTime(1000);
@@ -394,7 +434,7 @@ class TestTCS extends Thread {
     private void allowPedestriansToCross(Phases currentPhase,TICSModes mode){
         boolean northSouth = currentPhase.getNSPedestrians();
         boolean eastWest =currentPhase.getEWPedestrians();
-        System.out.println(mode.toString());
+
         if(mode.equals(TICSModes.DayMode )) {
             for (Lights l : Lights.values()) {
                 //is pedestrian at Light l:(n/e/s/w)
