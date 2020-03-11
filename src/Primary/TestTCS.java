@@ -65,7 +65,7 @@ class TestTCS extends Thread {
             pedWaitAction();
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
-            Lanes possibleEmergency = detectEmergency();
+            possibleEmergency = detectEmergency();
 
             if (0 != getEmergencyPath()){
                 bcFlasher.setRunning(false);
@@ -88,17 +88,11 @@ class TestTCS extends Thread {
             switch (currentMode) {
                 case NightMode:
                 case DayMode:
+                case EmergencyMode:
+                    // EmergencyMode code goes here
                     currentPhase = findNextPhase(currentPhase);
                     displayCurrentPhase(currentPhase);
 //                    new Thread(new Flasher(false)).start();
-                    break;
-                case EmergencyMode:
-                    // EmergencyMode code goes here
-                    //Remember that at any point, whenever an emergency car is needed,
-                    //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
-                    //In the next second, the program will do whatever you put in doSomething
-                    currentPhase=Phases.ALL_RED1;
-                    displayEmergencyLane(possibleEmergency);
                     break;
                 case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
@@ -366,6 +360,45 @@ class TestTCS extends Thread {
             }
         }
 
+        if (currentMode==TICSModes.EmergencyMode){
+            // grab the latest phase before the emergency phase
+            switch (currentPhase){
+                case NS_LEFT_GREEN:
+                    return Phases.NS_LEFT_YELLOW;
+                case NS_LEFT_YELLOW:
+                case EW_LEFT_YELLOW:
+                case NS_YELLOW:
+                    return Phases.ALL_RED1;
+                case NS_GREEN:
+                    return Phases.NS_YELLOW;
+                case EW_GREEN:
+                    return Phases.EW_YELLOW;
+                case EW_LEFT_GREEN:
+                    return Phases.EW_LEFT_YELLOW;
+                case ALL_RED1:
+                    //figure out which lane needs to be given the right of way for the emergency vehicle
+                    //THIS LOGIC IS SWITCHED TO WORK CORRECTLY!
+                    switch (possibleEmergency){
+                        case N2:
+                        case N3:
+                        case S2:
+                        case S3:
+                            return Phases.NS_GREEN;
+                        case E2:
+                        case E3:
+                        case W2:
+                        case W3:
+                            return Phases.EW_GREEN;
+                        case N1:
+                        case S1:
+                            return Phases.EW_LEFT_GREEN;
+                        case E1:
+                        case W1:
+                            return Phases.NS_LEFT_GREEN;
+                    }
+            }
+        }
+
         /*
           This encompases all the phases possible during Day and Night Mode operations. Due to this,
           both Modes have been implemented in the switch statement, with a few conditionals to help
@@ -430,6 +463,7 @@ class TestTCS extends Thread {
         switch (currentMode){
             case NightMode:
             case DayMode:
+            case EmergencyMode:
                 Phases.NS_LEFT_YELLOW.setPhaseTime(4000);
                 Phases.NS_LEFT_GREEN.setPhaseTime(4000);
                 Phases.EW_LEFT_GREEN.setPhaseTime(4000);
@@ -451,9 +485,6 @@ class TestTCS extends Thread {
                 Phases.FOURWAY_E_GREEN.setPhaseTime(300);
                 Phases.FOURWAY_W_GREEN.setPhaseTime(300);
                 Phases.ALL_RED1.setPhaseTime(3500);
-                break;
-            case EmergencyMode:
-                Phases.ALL_RED1.setPhaseTime(1000);
                 break;
         }
     }
