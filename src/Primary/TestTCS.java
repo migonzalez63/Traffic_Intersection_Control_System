@@ -287,7 +287,7 @@ class TestTCS extends Thread {
                 Phases.FOURWAY_S_GREEN.setPhaseTime(300);
                 Phases.FOURWAY_E_GREEN.setPhaseTime(300);
                 Phases.FOURWAY_W_GREEN.setPhaseTime(300);
-                Phases.ALL_RED1.setPhaseTime(3000);
+                Phases.ALL_RED1.setPhaseTime(3500);
         }
     }
 }
