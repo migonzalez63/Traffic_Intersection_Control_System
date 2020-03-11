@@ -99,14 +99,12 @@ class TestTCS extends Thread {
 
                     displayCurrentPhase(currentPhase);
 
-                    System.out.println("CURRENT PHASE: " + currentPhase);
-                    System.out.println("PHASE TIME: " + currentPhase.getPhaseTime());
-
                     /*
                         Resets the current first lane in order to not reconsider that lane
                         to allow passage
                      */
-                    if(currentPhase == Phases.ALL_RED1 && firstLane != null) {
+
+                    if(firstLane != null) {
                         fastestArrival = 0;
                         firstLane.setArriveTime(0);
                         firstLane = null;

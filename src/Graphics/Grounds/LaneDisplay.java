@@ -7,8 +7,6 @@ import Primary.SignalColor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
 
-import java.util.Calendar;
-
 
 public class LaneDisplay extends Ground {
 
