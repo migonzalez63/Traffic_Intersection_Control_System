@@ -185,6 +185,7 @@ class TestTCS extends Thread {
     public void reset(){
         bcFlasher.setRunning(false);
         resetEmergenciesOnLanes();
+        possibleEmergency = null;
     }
 
     /**
@@ -544,7 +545,9 @@ class TestTCS extends Thread {
     }
 
     public void resetEmergenciesOnLanes(){
-        Arrays.stream(Lanes.values()).forEach(lane -> lane.setEmergencyOnLane(false));
+        for(Lanes l : Lanes.values()){
+            if(l.getEmergencyOnLane()) l.setEmergencyOnLane(false);
+        }
 
     }
 }
