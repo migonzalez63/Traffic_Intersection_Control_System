@@ -21,13 +21,26 @@ import java.util.Arrays;
  *           public boolean isPedestrianAt()
  *
  */
+
+
+// FIXME Bugs:
+// - Malfunction mode cannot handle emergency vehicles. They just sit. It
+// seems like in emergency mode it overwrites malfunction mode but it should
+// just act as another vehicle.
+// - EV can get locked up if multiple EV arrivals occur at once. What happens
+// is left turn signals are just cycled over and over.
+// - EV gets locked when it comes from the West and TS only cycle N-S turn
+// signals on a loop
+
 class TestTCS extends Thread {
     private Boolean running = true;
     private TICSModes beforeEmergencyMode = TICSModes.DayMode;
     private Phases beforeEmergencyPhase= null;
     private TICSModes currentMode = TICSModes.NightMode;
     private Lanes firstLane = null;
+    private Flasher bcFlasher = new Flasher(false);
     private Lanes possibleEmergency = null;
+
     private long fastestArrival = 0;
 
 
@@ -54,7 +67,6 @@ class TestTCS extends Thread {
     public void testBegin() {
 
         Phases currentPhase= Phases.ALL_RED1;
-        Flasher bcFlasher = new Flasher(false);
         Thread t;
         //int endPhaseTime=0;
 
@@ -62,19 +74,24 @@ class TestTCS extends Thread {
             changeLightTimes();
             // Comment this out if the sounds get annoying during testing.
             // Might not need it in demo
-            pedWaitAction();
+//            pedWaitAction();
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
             possibleEmergency = detectEmergency();
 
-            if (0 != getEmergencyPath()){
+//            if (0 != getEmergencyPath()){
+//                bcFlasher.setRunning(false);
+//                bcFlasher = new Flasher((1 == getEmergencyPath()));
+//                t = new Thread(bcFlasher);
+//                t.start();
+//            }
+            //When the current mode is Day or Night mode and an emergency vehicle is first detected
+            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
+                System.out.println(possibleEmergency);
                 bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
                 t = new Thread(bcFlasher);
                 t.start();
-            }
-            //When the current mode is Day or Night mode and an emergency vehicle is first detected
-            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
                 beforeEmergencyMode=currentMode;
                 beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
@@ -101,14 +118,12 @@ class TestTCS extends Thread {
 
                     displayCurrentPhase(currentPhase);
 
-                    System.out.println("CURRENT PHASE: " + currentPhase);
-                    System.out.println("PHASE TIME: " + currentPhase.getPhaseTime());
-
                     /*
                         Resets the current first lane in order to not reconsider that lane
                         to allow passage
                      */
-                    if(currentPhase == Phases.ALL_RED1 && firstLane != null) {
+
+                    if(firstLane != null) {
                         fastestArrival = 0;
                         firstLane.setArriveTime(0);
                         firstLane = null;
@@ -167,6 +182,12 @@ class TestTCS extends Thread {
             }
         }
         return nSTravel;
+    }
+
+    public void reset(){
+        bcFlasher.setRunning(false);
+        resetEmergenciesOnLanes();
+        possibleEmergency = null;
     }
 
     /**
@@ -504,7 +525,7 @@ class TestTCS extends Thread {
         boolean northSouth = currentPhase.getNSPedestrians();
         boolean eastWest =currentPhase.getEWPedestrians();
 
-        if(mode.equals(TICSModes.DayMode )) {
+        if(mode.equals(TICSModes.DayMode ) || mode.equals(TICSModes.NightMode)) {
             for (Lights l : Lights.values()) {
                 //is pedestrian at Light l:(n/e/s/w)
                 if (l.isPedestrianAt()) {
@@ -520,10 +541,6 @@ class TestTCS extends Thread {
                 }
             }
         }
-        if(mode.equals(TICSModes.NightMode)){
-            //todo possibly new phases? else just make it react like day mode
-
-        }
     }
 
     private void stopPedestrianLights(){
@@ -537,5 +554,12 @@ class TestTCS extends Thread {
             }
         }
         return null;
+    }
+
+    public void resetEmergenciesOnLanes(){
+        for(Lanes l : Lanes.values()){
+            if(l.getEmergencyOnLane()) l.setEmergencyOnLane(false);
+        }
+
     }
 }
