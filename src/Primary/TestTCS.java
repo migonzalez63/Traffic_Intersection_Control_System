@@ -55,7 +55,7 @@ class TestTCS extends Thread {
     public void testBegin() {
 
         Phases currentPhase= Phases.ALL_RED1;
-        Flasher bcFlasher =null;
+        Flasher bcFlasher = new Flasher(false);
         Thread t;
         //int endPhaseTime=0;
 
@@ -64,11 +64,15 @@ class TestTCS extends Thread {
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
             Lanes possibleEmergency = detectEmergency();
-            //When the current mode is Day or Night mode and an emergency vehicle is first detected
-            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
+
+            if (0 != getEmergencyPath()){
+                bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
                 t = new Thread(bcFlasher);
                 t.start();
+            }
+            //When the current mode is Day or Night mode and an emergency vehicle is first detected
+            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
                 beforeEmergencyMode=currentMode;
                 beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
