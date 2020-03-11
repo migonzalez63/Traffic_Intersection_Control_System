@@ -114,7 +114,6 @@ public class Main extends Application {
             controller.heavyMode(controlLabel);
             DayNight.DAY.setDay(true);
             controller.setTICSMode(TICSModes.DayMode);
-
         });
         moderateButton.setOnMousePressed(e -> {
             controller.moderateMode(controlLabel);

@@ -19,6 +19,7 @@ public class Controller extends Thread{
     private Simulation sim;
     private GraphicsContext gc;
     private TestTCS test;
+    private String currentModeString;
 
     public volatile static int threadCount = 0; // used to see how many threads need to move before draw update
     public static final Object countLock = new Object(); // Used to lock the threadCount when changed
@@ -61,6 +62,7 @@ public class Controller extends Thread{
     }
 
     public void rushMode(Label label){
+        this.currentModeString = "Rush Hour";
         label.setText("Modes:\nRush Hour\nVehicle & Pedestrian\nPeriod = 0.25s\nTICS Mode: Day Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 200, TimeUnit.MILLISECONDS);
@@ -69,6 +71,7 @@ public class Controller extends Thread{
 
     public void heavyMode(Label label)
     {
+        this.currentModeString = "Heavy Traffic";
         label.setText("Modes:\nHeavy traffic\nPeriod = 0.5s\nTICS Mode: Day Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 500, TimeUnit.MILLISECONDS);
@@ -76,13 +79,12 @@ public class Controller extends Thread{
 
     public void malfunctionMode(Label label)
     {
-        label.setText("Modes:\nModerate traffic\nPeriod = 0.5s\nTICS Mode: Malfunction Mode");
-        spawnInterval.cancel(false);
-        spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 500, TimeUnit.MILLISECONDS);
+        label.setText("Modes:\n"+currentModeString+"\nPeriod = 0.5s\nTICS Mode: Malfunction Mode");
     }
 
     public void moderateMode(Label label)
     {
+        this.currentModeString = "Moderate Traffic";
         label.setText("Modes:\nModerate traffic\nPeriod = 1s\nTICS Mode: Day Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 1000, TimeUnit.MILLISECONDS);
@@ -90,6 +92,7 @@ public class Controller extends Thread{
 
     public void lightMode(Label label)
     {
+        this.currentModeString = "Night Mode";
         label.setText("Modes:\nLight traffic\nPeriod = 2s\nTICS mode: Night Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnCar(), 100, 2000, TimeUnit.MILLISECONDS);
