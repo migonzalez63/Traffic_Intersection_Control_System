@@ -24,13 +24,13 @@ import java.util.Arrays;
 
 
 // FIXME Bugs:
-// - Malfunction mode cannot handle emergency vehicles.
+// - Malfunction mode cannot handle emergency vehicles. They just sit. It
+// seems like in emergency mode it overwrites malfunction mode but it should
+// just act as another vehicle.
 // - EV can get locked up if multiple EV arrivals occur at once. What happens
 // is left turn signals are just cycled over and over.
 // - EV gets locked when it comes from the West and TS only cycle N-S turn
 // signals on a loop
-// - It seems like when they reset EV still appear in the lanes but are just
-// undrawn.
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -87,7 +87,6 @@ class TestTCS extends Thread {
 //            }
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
-                System.out.println("new thread");
                 System.out.println(possibleEmergency);
                 bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
@@ -100,7 +99,6 @@ class TestTCS extends Thread {
             //When the current mode is emergency mode and there is no longer an emergency vehicle around
             else if (currentMode==TICSModes.EmergencyMode && possibleEmergency==null){
                     bcFlasher.setRunning(false);
-                System.out.println("off");
                     currentMode=beforeEmergencyMode;
                     currentPhase=beforeEmergencyPhase;
             }
@@ -184,10 +182,9 @@ class TestTCS extends Thread {
         return nSTravel;
     }
 
-    public void resetCB(){
+    public void reset(){
         bcFlasher.setRunning(false);
         resetEmergenciesOnLanes();
-        System.out.println("reset cb");
     }
 
     /**
