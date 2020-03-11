@@ -90,7 +90,9 @@ class TestTCS extends Thread {
                 case DayMode:
                 case EmergencyMode:
                     // EmergencyMode code goes here
+                    System.out.print(currentPhase+ " -----> ");
                     currentPhase = findNextPhase(currentPhase);
+                    System.out.println(currentPhase);
                     displayCurrentPhase(currentPhase);
 //                    new Thread(new Flasher(false)).start();
                     break;
@@ -361,7 +363,17 @@ class TestTCS extends Thread {
         }
 
         if (currentMode==TICSModes.EmergencyMode){
-            // grab the latest phase before the emergency phase
+            //BUG: Ewleftgreen ---> ew left yellow
+            // ew left yellow ---> allred1
+            // allred1 ---> ew left green
+            // ewleftgreen---> ew left yellow
+            //...forever
+            // It should instead:
+            // grab the phase before the emergency phase was invoked
+            // turn it from green to yellow, or from yellow to red.
+            // Find out which lane the emergency vehicle is on (the logic might be switched here)
+            // Turn the correct phase green from here.
+            // Seamlessly switch to the next phase.
             switch (currentPhase){
                 case NS_LEFT_GREEN:
                     return Phases.NS_LEFT_YELLOW;
