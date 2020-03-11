@@ -26,7 +26,7 @@ class TestTCS extends Thread {
     private Boolean running = true;
     private TICSModes beforeEmergencyMode = TICSModes.DayMode;
     private Phases beforeEmergencyPhase= null;
-    private TICSModes currentMode = TICSModes.DayMode;
+    private TICSModes currentMode = TICSModes.NightMode;
     private Lanes firstLane = null;
     private Lanes possibleEmergency = null;
     private long fastestArrival = 0;
@@ -55,7 +55,7 @@ class TestTCS extends Thread {
     public void testBegin() {
 
         Phases currentPhase= Phases.ALL_RED1;
-        Flasher bcFlasher =null;
+        Flasher bcFlasher = new Flasher(false);
         Thread t;
         //int endPhaseTime=0;
 
@@ -64,11 +64,15 @@ class TestTCS extends Thread {
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
             Lanes possibleEmergency = detectEmergency();
-            //When the current mode is Day or Night mode and an emergency vehicle is first detected
-            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
+
+            if (0 != getEmergencyPath()){
+                bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
                 t = new Thread(bcFlasher);
                 t.start();
+            }
+            //When the current mode is Day or Night mode and an emergency vehicle is first detected
+            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
                 beforeEmergencyMode=currentMode;
                 beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
@@ -340,7 +344,6 @@ class TestTCS extends Thread {
             }
         }
 
-
         /*
           This encompases all the phases possible during Day and Night Mode operations. Due to this,
           both Modes have been implemented in the switch statement, with a few conditionals to help
@@ -372,9 +375,11 @@ class TestTCS extends Thread {
             case EW_GREEN:
                 // If no vehicles are present in the less busy street, in our case, the North and South roads, then
                 // we don't want to change the lights of the main road, in order to allow more vehicles to move through
-                if(currentMode == TICSModes.NightMode) {
+               if(currentMode == TICSModes.NightMode) {
                     return (Lanes.S1.isCarOnLane() || Lanes.N1.isCarOnLane()
-                            || Lanes.S2.isCarOnLane() || Lanes.N2.isCarOnLane()) ? Phases.EW_YELLOW : Phases.EW_GREEN;
+                            || Lanes.S2.isCarOnLane() || Lanes.N2.isCarOnLane()
+                            || Lanes.S3.isCarOnLane() || Lanes.N3.isCarOnLane()
+                            || Lanes.E1.isCarOnLane() || Lanes.W1.isCarOnLane()) ? Phases.EW_YELLOW : Phases.EW_GREEN;
                 }
                 return Phases.EW_YELLOW;
             case EW_YELLOW:
@@ -423,7 +428,7 @@ class TestTCS extends Thread {
                 Phases.FOURWAY_S_GREEN.setPhaseTime(600);
                 Phases.FOURWAY_E_GREEN.setPhaseTime(600);
                 Phases.FOURWAY_W_GREEN.setPhaseTime(600);
-                Phases.ALL_RED1.setPhaseTime(3000);
+                Phases.ALL_RED1.setPhaseTime(3500);
             case EmergencyMode:
                 Phases.ALL_RED1.setPhaseTime(1000);
         }

@@ -2,6 +2,7 @@ package Graphics.Grounds;
 
 import Graphics.Direction;
 import Graphics.Simulation;
+import Graphics.TOD_Display;
 import Graphics.Traffic.Pedestrian;
 import javafx.scene.canvas.GraphicsContext;
 
@@ -16,6 +17,7 @@ public class Intersection extends Ground {
     private double size = Simulation.size;
     private LinkedList<RoadDisplay> roads = new LinkedList<>();
     private LinkedList<Crossing> crosswalks = new LinkedList<>();
+    private List<TOD_Display> tod_display = new ArrayList<>();
     private List<BeaconDisplay> beacons = new ArrayList<>();
 
 
@@ -29,6 +31,10 @@ public class Intersection extends Ground {
     //
     public void draw(){
         gc.fillRect(x , y, size, size);
+        for(TOD_Display t: tod_display){
+            t.drawOverlay();
+        }
+
         for (RoadDisplay r : roads) {
             r.drawRoad();
        }
@@ -36,10 +42,10 @@ public class Intersection extends Ground {
         for(BeaconDisplay b : beacons){
             b.drawBeacon();
         }
-
        for (Crossing c : crosswalks){
             c.draw();
        }
+
     }
 
     // Initialize all the corners for pedestrians and the crosswalks that connect them
@@ -63,6 +69,12 @@ public class Intersection extends Ground {
         for(Direction d: Direction.values()){
             beacons.add(new BeaconDisplay(gc, d));
         }
+
+        tod_display.add(new TOD_Display(gc, 0,0));
+        tod_display.add(new TOD_Display(gc,325,0));
+        tod_display.add(new TOD_Display(gc,0,325));
+        tod_display.add(new TOD_Display(gc,325,325));
+
 
 
         crosswalks.add(cNorth);
