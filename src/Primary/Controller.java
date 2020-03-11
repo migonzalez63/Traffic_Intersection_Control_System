@@ -32,6 +32,10 @@ public class Controller extends Thread{
         this.sim = new Simulation(gc);
     }
 
+    public void setTICSMode(TICSModes mode){
+        test.setTICSMode(mode);
+    }
+
     public void run(){
         try
         {
@@ -57,7 +61,7 @@ public class Controller extends Thread{
     }
 
     public void rushMode(Label label){
-        label.setText("Modes:\nRush Hour\nVehicle & Pedestrian\nPeriod = 0.25s");
+        label.setText("Modes:\nRush Hour\nVehicle & Pedestrian\nPeriod = 0.25s\nTICS Mode: Day Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 200, TimeUnit.MILLISECONDS);
     }
@@ -65,21 +69,28 @@ public class Controller extends Thread{
 
     public void heavyMode(Label label)
     {
-        label.setText("Modes:\nHeavy traffic\nPeriod = 0.5s");
+        label.setText("Modes:\nHeavy traffic\nPeriod = 0.5s\nTICS Mode: Day Mode");
+        spawnInterval.cancel(false);
+        spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 500, TimeUnit.MILLISECONDS);
+    }
+
+    public void malfunctionMode(Label label)
+    {
+        label.setText("Modes:\nModerate traffic\nPeriod = 0.5s\nTICS Mode: Malfunction Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 500, TimeUnit.MILLISECONDS);
     }
 
     public void moderateMode(Label label)
     {
-        label.setText("Modes:\nModerate traffic\nPeriod = 1s");
+        label.setText("Modes:\nModerate traffic\nPeriod = 1s\nTICS Mode: Day Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnBoth(), 100, 1000, TimeUnit.MILLISECONDS);
     }
 
     public void lightMode(Label label)
     {
-        label.setText("Modes:\nLight traffic\nPeriod = 2s");
+        label.setText("Modes:\nLight traffic\nPeriod = 2s\nTICS mode: Night Mode");
         spawnInterval.cancel(false);
         spawnInterval = spawner.scheduleAtFixedRate(() -> spawnCar(), 100, 2000, TimeUnit.MILLISECONDS);
     }
@@ -187,6 +198,8 @@ public class Controller extends Thread{
             timer.schedule(t, 3000);
 
         }
+
+
 
         // Calls the function that creates a new Simulation
         // and then resets the ending vars to false

@@ -61,5 +61,8 @@ public enum Phases {
     public LinkedList<Lanes> getYellowLanes() {
         return yellowLanes;
     }
+
+    public boolean getEWPedestrians() { return ewpedestrians;    }
+    public boolean getNSPedestrians() { return nspedestrians;    }
 }
 

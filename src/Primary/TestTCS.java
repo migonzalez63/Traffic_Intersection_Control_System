@@ -1,6 +1,9 @@
 package Primary;
 
+import Graphics.Direction;
 import Graphics.Grounds.LaneDisplay;
+
+import java.util.Arrays;
 
 /**
  * TestTCS is the access point for Traffic Control System (TCS) interaction with the testbed.
@@ -21,9 +24,13 @@ import Graphics.Grounds.LaneDisplay;
  */
 class TestTCS extends Thread {
     private Boolean running = true;
-    private TICSModes currentMode = TICSModes.MalfunctionMode;
+    private TICSModes beforeEmergencyMode = TICSModes.DayMode;
+    private Phases beforeEmergencyPhase= null;
+    private TICSModes currentMode = TICSModes.NightMode;
     private Lanes firstLane = null;
+    private Lanes possibleEmergency = null;
     private long fastestArrival = 0;
+
 
     /**
      * TestTCS.begin() is the communication point between the testbed and the
@@ -38,31 +45,62 @@ class TestTCS extends Thread {
 
     }
 
+    public void setTICSMode(TICSModes mode){
+        this.currentMode = mode;
+    }
+
     /*
      * This is the old begin method. I kept it here for reference
      */
     public void testBegin() {
 
         Phases currentPhase= Phases.ALL_RED1;
+        Flasher bcFlasher = new Flasher(false);
+        Thread t;
         //int endPhaseTime=0;
 
         while(running){
             changeLightTimes();
+            //This logic is added here to check for an emergency
+            //vehicle at any iteration before switching on TICS mode
+            Lanes possibleEmergency = detectEmergency();
 
+            if (0 != getEmergencyPath()){
+                bcFlasher.setRunning(false);
+                bcFlasher = new Flasher((1 == getEmergencyPath()));
+                t = new Thread(bcFlasher);
+                t.start();
+            }
+            //When the current mode is Day or Night mode and an emergency vehicle is first detected
+            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
+                beforeEmergencyMode=currentMode;
+                beforeEmergencyPhase=currentPhase;
+                currentMode=TICSModes.EmergencyMode;
+            }
+            //When the current mode is emergency mode and there is no longer an emergency vehicle around
+            else if (currentMode==TICSModes.EmergencyMode && possibleEmergency==null){
+                    bcFlasher.setRunning(false);
+                    currentMode=beforeEmergencyMode;
+                    currentPhase=beforeEmergencyPhase;
+            }
             switch (currentMode) {
                 case NightMode:
                 case DayMode:
                     currentPhase = findNextPhase(currentPhase);
                     displayCurrentPhase(currentPhase);
+//                    new Thread(new Flasher(false)).start();
                     break;
                 case EmergencyMode:
                     // EmergencyMode code goes here
                     //Remember that at any point, whenever an emergency car is needed,
                     //all that needs to be done is set currentMode to TICSModes.EmergencyMode.
                     //In the next second, the program will do whatever you put in doSomething
+                    currentPhase=Phases.ALL_RED1;
+                    displayEmergencyLane(possibleEmergency);
                     break;
                 case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
+
                     displayCurrentPhase(currentPhase);
 
                     /*
@@ -83,11 +121,106 @@ class TestTCS extends Thread {
 
             try {
                 sleep(currentPhase.getPhaseTime());
+                stopPedestrianLights();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         System.out.println("Test ended..");
+    }
+
+    /**
+     *  Returns 1 if EV is traveling in a north or south lane.
+     * @return int which denotes lane of travel.
+     */
+    private int getEmergencyPath(){
+        int nSTravel = 0;
+        for(Lanes l: Lanes.values()){
+            if(l.getEmergencyOnLane()){
+                if(l.toString().contains("N") || l.toString().contains("S"))
+                {
+                    nSTravel = 1;
+                }
+
+                if(l.toString().contains("W") || l.toString().contains("E")){
+                    nSTravel = 2;
+                }
+            }
+        }
+        return nSTravel;
+    }
+
+    /**
+     * Thread that is used to flash confirmation beacons.
+     * NOTE: If on running too long (2 minutes) flashing gets buggy. Maybe
+     * caused by
+     * conflicting threads.
+     */
+    class Flasher implements Runnable{
+
+        private boolean running;
+        private boolean ns;
+        private final int timeWait = 500;
+
+        /**
+         * Initialize with true if EV is traveling north-south.
+         * @param northSouth Boolean used to determine DOT
+         */
+        public Flasher(boolean northSouth){
+            running = true;
+            ns = northSouth;
+        }
+
+        public void setRunning(boolean running) {
+            this.running = running;
+        }
+
+        /**
+         * Set northSouth variable to true if EV is traveling that dir
+         * @param ns boolean
+         */
+        public void setNs(boolean ns) {
+            this.ns = ns;
+        }
+
+        @Override
+        public void run(){
+            while(running) {
+                if(ns) {
+                    ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
+                    ConfirmationBeacon.SOUTH.changeColor(BeaconColor.WHITE);
+                    try {
+                        ConfirmationBeacon.EAST.changeColor(BeaconColor.WHITE);
+                        ConfirmationBeacon.WEST.changeColor(BeaconColor.WHITE);
+                        sleep(timeWait);
+                        ConfirmationBeacon.EAST.changeColor(BeaconColor.BLACK);
+                        ConfirmationBeacon.WEST.changeColor(BeaconColor.BLACK);
+                        sleep(timeWait);
+                    } catch (InterruptedException i) {
+                        i.printStackTrace();
+                    }
+                } else{
+                    ConfirmationBeacon.EAST.changeColor(BeaconColor.WHITE);
+                    ConfirmationBeacon.WEST.changeColor(BeaconColor.WHITE);
+                    try {
+                        ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
+                        ConfirmationBeacon.SOUTH.changeColor(BeaconColor.WHITE);
+                        sleep(timeWait);
+                        ConfirmationBeacon.NORTH.changeColor(BeaconColor.BLACK);
+                        ConfirmationBeacon.SOUTH.changeColor(BeaconColor.BLACK);
+                        sleep(timeWait);
+                    } catch (InterruptedException i) {
+                        i.printStackTrace();
+                    }
+                }
+            }
+            ConfirmationBeacon.EAST.changeColor(BeaconColor.BLACK);
+            ConfirmationBeacon.WEST.changeColor(BeaconColor.BLACK);
+            ConfirmationBeacon.NORTH.changeColor(BeaconColor.BLACK);
+            ConfirmationBeacon.SOUTH.changeColor(BeaconColor.BLACK);
+        }
+
     }
 
     public void end(){
@@ -115,6 +248,7 @@ class TestTCS extends Thread {
     private void displayCurrentPhase(Phases currentPhase) {
         if (currentPhase.getGreenLanes() != null) {
             for (Lanes greenLane : currentPhase.getGreenLanes()) {
+                allowPedestriansToCross(currentPhase,currentMode);
                 greenLane.setColor(SignalColor.GREEN);
             }
         }
@@ -128,6 +262,11 @@ class TestTCS extends Thread {
                 redLane.setColor(SignalColor.RED);
             }
         }
+    }
+
+    private void displayEmergencyLane(Lanes emergencyLane){
+        displayCurrentPhase(Phases.ALL_RED1);
+        emergencyLane.setColor(SignalColor.GREEN);
     }
 
     private Phases findNextPhase(Phases currentPhase){
@@ -236,9 +375,11 @@ class TestTCS extends Thread {
             case EW_GREEN:
                 // If no vehicles are present in the less busy street, in our case, the North and South roads, then
                 // we don't want to change the lights of the main road, in order to allow more vehicles to move through
-                if(currentMode == TICSModes.NightMode) {
+               if(currentMode == TICSModes.NightMode) {
                     return (Lanes.S1.isCarOnLane() || Lanes.N1.isCarOnLane()
-                            || Lanes.S2.isCarOnLane() || Lanes.N2.isCarOnLane()) ? Phases.EW_YELLOW : Phases.EW_GREEN;
+                            || Lanes.S2.isCarOnLane() || Lanes.N2.isCarOnLane()
+                            || Lanes.S3.isCarOnLane() || Lanes.N3.isCarOnLane()
+                            || Lanes.E1.isCarOnLane() || Lanes.W1.isCarOnLane()) ? Phases.EW_YELLOW : Phases.EW_GREEN;
                 }
                 return Phases.EW_YELLOW;
             case EW_YELLOW:
@@ -281,13 +422,48 @@ class TestTCS extends Thread {
                 Phases.ALL_RED4.setPhaseTime(3000);
                 break;
             case MalfunctionMode:
-                Phases.EW_GREEN.setPhaseTime(300);
-                Phases.NS_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_N_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_S_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_E_GREEN.setPhaseTime(300);
-                Phases.FOURWAY_W_GREEN.setPhaseTime(300);
+                Phases.EW_GREEN.setPhaseTime(600);
+                Phases.NS_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_N_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_S_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_E_GREEN.setPhaseTime(600);
+                Phases.FOURWAY_W_GREEN.setPhaseTime(600);
                 Phases.ALL_RED1.setPhaseTime(3500);
+            case EmergencyMode:
+                Phases.ALL_RED1.setPhaseTime(1000);
         }
+    }
+    private void allowPedestriansToCross(Phases currentPhase,TICSModes mode){
+        boolean northSouth = currentPhase.getNSPedestrians();
+        boolean eastWest =currentPhase.getEWPedestrians();
+
+        if(mode.equals(TICSModes.DayMode )) {
+            for (Lights l : Lights.values()) {
+                //is pedestrian at Light l:(n/e/s/w)
+                if (l.isPedestrianAt()) {
+                    //is it safe to cross according to the phase?
+                    if (eastWest && (l.toString().equals("NORTH") || l.toString().equals("SOUTH")))
+                        l.setColor(SignalColor.GREEN);
+                    if (northSouth && (l.toString().equals("EAST") || l.toString().equals("WEST")))
+                        l.setColor(SignalColor.GREEN);
+                }
+            }
+        }
+        if(mode.equals(TICSModes.NightMode)){
+            //todo possibly new phases? else just make it react like day mode
+
+        }
+    }
+
+    private void stopPedestrianLights(){
+        Arrays.stream(Lights.values()).forEach(light -> light.setColor(SignalColor.RED));
+    }
+    public Lanes detectEmergency(){
+        for (Lanes l: Lanes.values()){
+            if (l.getEmergencyOnLane()){
+                return l;
+            }
+        }
+        return null;
     }
 }
