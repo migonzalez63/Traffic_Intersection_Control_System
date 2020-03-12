@@ -119,21 +119,6 @@ class TestTCS extends Thread {
         System.out.println("Test ended..");
     }
 
-    private Phases returnToNormal(Phases phase){
-
-        switch(phase){
-            case NS_LEFT_GREEN:
-                return Phases.NS_LEFT_YELLOW;
-            case NS_GREEN:
-                return Phases.NS_YELLOW;
-            case EW_LEFT_GREEN:
-                return Phases.EW_LEFT_YELLOW;
-            case EW_GREEN:
-                return Phases.EW_YELLOW;
-        }
-        return null;
-    }
-
     /**
      * Used to beep on pedestrian signals that have people waiting.
      * Will only beep once on initial arrival.
