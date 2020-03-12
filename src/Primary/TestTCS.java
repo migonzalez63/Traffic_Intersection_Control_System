@@ -1,6 +1,5 @@
 package Primary;
 
-import Graphics.Direction;
 import javafx.scene.media.AudioClip;
 
 import java.util.Arrays;
@@ -23,7 +22,10 @@ import java.util.Arrays;
  *
  */
 
-
+// FIXME BUG
+    // - Switching from emergency mode to night mode while CB is on causes CB
+// to stay on permanently. Can just wait to change the mode after CB is
+// turned off.
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -34,6 +36,8 @@ class TestTCS extends Thread {
     private Flasher bcFlasher = new Flasher(false);
     private Lanes possibleEmergency = null;
     private Lanes currentEmergency, prevEmergency = null;
+    // set this to true for immersion
+    private final boolean playSound = false;
 
     private long fastestArrival = 0;
 
@@ -61,24 +65,26 @@ class TestTCS extends Thread {
     public void testBegin() {
 
         Phases currentPhase= Phases.ALL_RED1;
-        Thread t;
         //int endPhaseTime=0;
 
         while(running){
             changeLightTimes();
+            if(playSound) pedWaitAction();
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
             possibleEmergency = detectEmergency();
 
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null && currentMode != TICSModes.MalfunctionMode){
-                currentEmergency = possibleEmergency;
                 beforeEmergencyMode=currentMode;
                 beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
             }
             //When the current mode is emergency mode and there is no longer an emergency vehicle around
             else if (currentMode==TICSModes.EmergencyMode && possibleEmergency==null){
+                bcFlasher.setRunning(false);
+                prevEmergency = null;
+                System.out.println("EV Cleared");
                 currentMode=beforeEmergencyMode;
                 currentPhase=beforeEmergencyPhase;
             }
@@ -108,10 +114,6 @@ class TestTCS extends Thread {
                     break;
             }
 
-            //System.out.println("CURRENT PHASE: " + currentPhase.toString());
-            //count ++;
-            //testSensors();
-
             try {
                 sleep(currentPhase.getPhaseTime());
                 stopPedestrianLights();
@@ -139,6 +141,24 @@ class TestTCS extends Thread {
     }
 
     /**
+     * Flashes the CB according to the path of the EV.
+     */
+    private void startCB(){
+        if(prevEmergency != possibleEmergency) {
+            bcFlasher.setRunning(false);
+            try {
+                sleep(200);
+            } catch (InterruptedException i) {
+                i.printStackTrace();
+            }
+            bcFlasher =
+                    new Flasher((1 == getEmergencyPath(possibleEmergency.toString())));
+            Thread t = new Thread(bcFlasher);
+            t.start();
+        }
+        prevEmergency = possibleEmergency;
+    }
+    /**
      *  Returns 1 if EV is traveling in a north or south lane, 0 if none
      *  detected, 2 if East or West.
      * @return int which denotes lane of travel.
@@ -150,6 +170,11 @@ class TestTCS extends Thread {
         return nSTravel;
     }
 
+    /**
+     * Used by controller to disable all CB when reset button is pressed.
+     * Also clears EV from the underlying logic as they stay there despite
+     * removing them.
+     */
     public void reset(){
         bcFlasher.setRunning(false);
         resetEmergenciesOnLanes();
@@ -274,7 +299,6 @@ class TestTCS extends Thread {
     }
 
     private Phases findNextPhase(Phases currentPhase){
-        Phases p = null;
         /*
           Finds the next possible phase when in Malfunction Mode.
           The intersection will turn into a four way stop and will
@@ -282,7 +306,6 @@ class TestTCS extends Thread {
           first.
          */
         if(currentMode == TICSModes.MalfunctionMode) {
-
             // All phases will loop back to red immediately, to give it the illusion
             // that only one set of vehicles is allowed to pass
             switch (currentPhase) {
@@ -350,6 +373,7 @@ class TestTCS extends Thread {
         }
 
         if (currentMode==TICSModes.EmergencyMode){
+            startCB();
             // grab the latest phase before the emergency phase
             switch (currentPhase){
                 case NS_LEFT_GREEN:
@@ -365,9 +389,7 @@ class TestTCS extends Thread {
                 case EW_LEFT_GREEN:
                     return Phases.EW_LEFT_YELLOW;
                 case ALL_RED1:
-                    //figure out which lane needs to be given the right of way for the emergency vehicle
-                    //THIS LOGIC IS SWITCHED TO WORK CORRECTLY!
-                    System.out.println("------------ "+possibleEmergency);
+                    System.out.println("Emergency on "+possibleEmergency);
                     switch (possibleEmergency){
                         case N2:
                         case N3:
@@ -504,7 +526,7 @@ class TestTCS extends Thread {
         Arrays.stream(Lights.values()).forEach(light -> light.setColor(SignalColor.RED));
     }
 
-    public Lanes detectEmergency(){
+    private Lanes detectEmergency(){
         for (Lanes l: Lanes.values()){
             if (l.getEmergencyOnLane()){
                 return l;
@@ -513,7 +535,7 @@ class TestTCS extends Thread {
         return null;
     }
 
-    public void resetEmergenciesOnLanes(){
+    private void resetEmergenciesOnLanes(){
         Arrays.stream(Lanes.values()).forEach(lane -> lane.setEmergencyOnLane(false));
 
     }
