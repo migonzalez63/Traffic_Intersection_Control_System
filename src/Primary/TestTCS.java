@@ -29,8 +29,11 @@ import java.util.Arrays;
 // just act as another vehicle.
 // - EV can get locked up if multiple EV arrivals occur at once. What happens
 // is left turn signals are just cycled over and over.
-// - EV gets locked when it comes from the West and TS only cycle N-S turn
-// signals on a loop
+
+    //If an emergency vehicle appears on a straight lane (EW, for example) when
+    // a light is already green, it will phase the straight away to yellow, then red
+    //stopping the emergency vehicle in its tracks. It then adds an additional phase of
+    //green turns to yellow to red and THEN allows the emergency vehicle to pass
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -424,10 +427,10 @@ class TestTCS extends Thread {
                             return Phases.EW_GREEN;
                         case N1:
                         case S1:
-                            return Phases.EW_LEFT_GREEN;
+                            return Phases.NS_LEFT_GREEN;
                         case E1:
                         case W1:
-                            return Phases.NS_LEFT_GREEN;
+                            return Phases.EW_LEFT_GREEN;
                     }
             }
         }
