@@ -1,5 +1,6 @@
 package Primary;
 
+import Graphics.Direction;
 import javafx.scene.media.AudioClip;
 
 import java.util.Arrays;
@@ -23,14 +24,6 @@ import java.util.Arrays;
  */
 
 
-// FIXME Bugs:
-// - Malfunction mode cannot handle emergency vehicles. They just sit. It
-// seems like in emergency mode it overwrites malfunction mode but it should
-// just act as another vehicle.
-// - EV can get locked up if multiple EV arrivals occur at once. What happens
-// is left turn signals are just cycled over and over.
-// - EV gets locked when it comes from the West and TS only cycle N-S turn
-// signals on a loop
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -40,6 +33,7 @@ class TestTCS extends Thread {
     private Lanes firstLane = null;
     private Flasher bcFlasher = new Flasher(false);
     private Lanes possibleEmergency = null;
+    private Lanes currentEmergency, prevEmergency = null;
 
     private long fastestArrival = 0;
 
@@ -72,35 +66,21 @@ class TestTCS extends Thread {
 
         while(running){
             changeLightTimes();
-            // Comment this out if the sounds get annoying during testing.
-            // Might not need it in demo
-//            pedWaitAction();
             //This logic is added here to check for an emergency
             //vehicle at any iteration before switching on TICS mode
             possibleEmergency = detectEmergency();
 
-//            if (0 != getEmergencyPath()){
-//                bcFlasher.setRunning(false);
-//                bcFlasher = new Flasher((1 == getEmergencyPath()));
-//                t = new Thread(bcFlasher);
-//                t.start();
-//            }
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null && currentMode != TICSModes.MalfunctionMode){
-                System.out.println(possibleEmergency);
-                bcFlasher.setRunning(false);
-                bcFlasher = new Flasher((1 == getEmergencyPath()));
-                t = new Thread(bcFlasher);
-                t.start();
+                currentEmergency = possibleEmergency;
                 beforeEmergencyMode=currentMode;
                 beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
             }
             //When the current mode is emergency mode and there is no longer an emergency vehicle around
             else if (currentMode==TICSModes.EmergencyMode && possibleEmergency==null){
-                    bcFlasher.setRunning(false);
-                    currentMode=beforeEmergencyMode;
-                    currentPhase=beforeEmergencyPhase;
+                currentMode=beforeEmergencyMode;
+                currentPhase=beforeEmergencyPhase;
             }
             switch (currentMode) {
                 case NightMode:
@@ -125,7 +105,6 @@ class TestTCS extends Thread {
                         firstLane.setArriveTime(0);
                         firstLane = null;
                     }
-
                     break;
             }
 
@@ -164,20 +143,10 @@ class TestTCS extends Thread {
      *  detected, 2 if East or West.
      * @return int which denotes lane of travel.
      */
-    private int getEmergencyPath(){
+    private int getEmergencyPath(String s){
         int nSTravel = 0;
-        for(Lanes l: Lanes.values()){
-            if(l.getEmergencyOnLane()){
-                if(l.toString().contains("N") || l.toString().contains("S"))
-                {
-                    nSTravel = 1;
-                }
-
-                if(l.toString().contains("W") || l.toString().contains("E")){
-                    nSTravel = 2;
-                }
-            }
-        }
+        if(s.contains("S") || s.contains("N")) return 1;
+        else if (s.contains("E") || s.contains("W")) return 2;
         return nSTravel;
     }
 
@@ -305,6 +274,7 @@ class TestTCS extends Thread {
     }
 
     private Phases findNextPhase(Phases currentPhase){
+        Phases p = null;
         /*
           Finds the next possible phase when in Malfunction Mode.
           The intersection will turn into a four way stop and will
@@ -397,6 +367,7 @@ class TestTCS extends Thread {
                 case ALL_RED1:
                     //figure out which lane needs to be given the right of way for the emergency vehicle
                     //THIS LOGIC IS SWITCHED TO WORK CORRECTLY!
+                    System.out.println("------------ "+possibleEmergency);
                     switch (possibleEmergency){
                         case N2:
                         case N3:
@@ -410,10 +381,10 @@ class TestTCS extends Thread {
                             return Phases.EW_GREEN;
                         case N1:
                         case S1:
-                            return Phases.EW_LEFT_GREEN;
+                            return Phases.NS_LEFT_GREEN;
                         case E1:
                         case W1:
-                            return Phases.NS_LEFT_GREEN;
+                            return Phases.EW_LEFT_GREEN;
                     }
             }
         }
