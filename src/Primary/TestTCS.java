@@ -22,10 +22,6 @@ import java.util.Arrays;
  *
  */
 
-// FIXME BUG
-    // - Switching from emergency mode to night mode while CB is on causes CB
-// to stay on permanently. Can just wait to change the mode after CB is
-// turned off.
 
 class TestTCS extends Thread {
     private Boolean running = true;
