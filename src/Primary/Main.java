@@ -31,14 +31,14 @@ public class Main extends Application {
         Canvas canvas = new Canvas(550, 550);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        VBox controlBox = new VBox(15);
+        VBox controlBox = new VBox(20);
         HBox speedBox = new HBox(10);
         VBox pedSpeedBox = new VBox(10);
         VBox carSpeedBox = new VBox(10);
 
-        controlBox.setPadding(new Insets(0,0,0,5));
+        controlBox.setPadding(new Insets(0,5,0,5));
         speedBox.setPadding(new Insets(0,0,20,0));
-        controlBox.setPrefSize(150, 550);
+        controlBox.setPrefSize(300, 550);
         controlBox.setStyle("-fx-background-color: #e0e0e0;");
 
         Label resultLabel = new Label("");
@@ -47,11 +47,11 @@ public class Main extends Application {
         Label controlLabel = new Label("Modes:\n\n");
         controlLabel.setPrefSize(150, 100);
 
-        Button rushButton = new Button("Rush Hour Traffic");
-        Button heavyButton = new Button("Heavy Traffic");
-        Button moderateButton = new Button("Moderate Traffic");
-        Button malfunctionModeButton= new Button("Malfunction Mode");
-        Button lightButton = new Button("Night Mode");
+        Button rushButton = new Button("\uD83C\uDF1E Rush Hour");
+        Button heavyButton = new Button("☀ Heavy Traffic");
+        Button moderateButton = new Button("☀ Moderate Traffic");
+        Button malfunctionModeButton= new Button("⚠Malfunction Mode");
+        Button lightButton = new Button("\uD83C\uDF19 Night Mode");
         Button spawnCarButton = new Button("Spawn Car");
         Button spawnEmergencyButton = new Button("Spawn Emergency");
         Button spawnPedButton = new Button("Spawn Pedestrian");
@@ -74,11 +74,11 @@ public class Main extends Application {
 
 
 
-        rushButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
-        malfunctionModeButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
-        heavyButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
-        moderateButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
-        lightButton.setStyle("-fx-background-color: #1f3d7a;-fx-text-fill: white; -fx-font: 14px Calibri;");
+        rushButton.setStyle("-fx-background-color: #f2740b;-fx-text-fill: white; -fx-font: 14px Calibri;-fx-border-width: 1;-fx-border-color: #e36700;");
+        malfunctionModeButton.setStyle("-fx-background-color: red;-fx-text-fill: white; -fx-font: 14px Calibri; -fx-border-width: 1;-fx-border-color: black;");
+        heavyButton.setStyle("-fx-background-color: #f2740b;-fx-text-fill: white; -fx-font: 14px Calibri; -fx-border-width: 1;-fx-border-color: #e36700;");
+        moderateButton.setStyle("-fx-background-color: #f2740b;-fx-text-fill: white; -fx-font: 14px Calibri;-fx-border-width: 1;-fx-border-color: #e36700;");
+        lightButton.setStyle("-fx-background-color: #141852;-fx-text-fill: white; -fx-font: 14px Calibri;-fx-border-width: 1;-fx-border-color: black;");
 
         spawnCarButton.setStyle("-fx-background-color: #ffffff;-fx-text-fill: #1f3d7a; -fx-border-radius: 2; -fx-border-width: 1; -fx-border-color: #1f3d7a; -fx-font: 13px Calibri;");
         spawnEmergencyButton.setStyle("-fx-background-color: #ffffff;-fx-text-fill: #1f3d7a; -fx-border-radius: 2; -fx-border-width: 1; -fx-border-color: #1f3d7a; -fx-font: 13px Calibri;");
@@ -91,15 +91,15 @@ public class Main extends Application {
         driveSlower.setStyle("-fx-background-color: #4775d1;-fx-text-fill: white; -fx-font: 14px Calibri;");
 
 
-        rushButton.setPrefSize(140, 30);
-        malfunctionModeButton.setPrefSize(140, 30);
-        heavyButton.setPrefSize(140, 30);
-        moderateButton.setPrefSize(140, 30);
-        lightButton.setPrefSize(140, 30);
-        spawnCarButton.setPrefSize(140, 30);
-        spawnEmergencyButton.setPrefSize(140, 30);
-        spawnPedButton.setPrefSize(140, 30);
-        resetButton.setPrefSize(140, 30);
+        rushButton.setPrefSize(160, 30);
+        malfunctionModeButton.setPrefSize(160, 30);
+        heavyButton.setPrefSize(160, 30);
+        moderateButton.setPrefSize(160, 30);
+        lightButton.setPrefSize(160, 30);
+        spawnCarButton.setPrefSize(160, 30);
+        spawnEmergencyButton.setPrefSize(160, 30);
+        spawnPedButton.setPrefSize(160, 30);
+        resetButton.setPrefSize(160, 30);
 
         Controller controller = new Controller(gc);
         controller.start();
@@ -154,7 +154,7 @@ public class Main extends Application {
         root.setRight(controlBox);
         root.setLeft(canvas);
 
-        Scene scene = new Scene(root, 700, 650);
+        Scene scene = new Scene(root, 720, 700);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Traffic Control System: Testbed");
         primaryStage.show();
