@@ -29,7 +29,8 @@ import java.util.Arrays;
 // just act as another vehicle.
 // - EV can get locked up if multiple EV arrivals occur at once. What happens
 // is left turn signals are just cycled over and over.
-
+// - EV gets locked when it comes from the West and TS only cycle N-S turn
+// signals on a loop
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -85,8 +86,8 @@ class TestTCS extends Thread {
 //                t.start();
 //            }
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
-            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
-                System.out.println("Emergency detected! at: "+ possibleEmergency);
+            if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null && currentMode != TICSModes.MalfunctionMode){
+                System.out.println(possibleEmergency);
                 bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
                 t = new Thread(bcFlasher);
@@ -106,16 +107,8 @@ class TestTCS extends Thread {
                 case DayMode:
                 case EmergencyMode:
                     // EmergencyMode code goes here
-                    System.out.println("------------------------------");
-                    System.out.println("Current Mode: "+ currentMode);
-                    System.out.println("Current Phase: "+currentPhase);
-                    System.out.print(currentPhase+ " -----> ");
                     currentPhase = findNextPhase(currentPhase);
-                    System.out.println(currentPhase);
-                    System.out.println("------------------------------");
-
                     displayCurrentPhase(currentPhase);
-//                    new Thread(new Flasher(false)).start();
                     break;
                 case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
@@ -191,7 +184,6 @@ class TestTCS extends Thread {
     public void reset(){
         bcFlasher.setRunning(false);
         resetEmergenciesOnLanes();
-        possibleEmergency = null;
     }
 
     /**
@@ -388,17 +380,7 @@ class TestTCS extends Thread {
         }
 
         if (currentMode==TICSModes.EmergencyMode){
-            //BUG: Ewleftgreen ---> ew left yellow
-            // ew left yellow ---> allred1
-            // allred1 ---> ew left green
-            // ewleftgreen---> ew left yellow
-            //...forever
-            // It should instead:
-            // grab the phase before the emergency phase was invoked
-            // turn it from green to yellow, or from yellow to red.
-            // Find out which lane the emergency vehicle is on (the logic might be switched here)
-            // Turn the correct phase green from here.
-            // Seamlessly switch to the next phase.
+            // grab the latest phase before the emergency phase
             switch (currentPhase){
                 case NS_LEFT_GREEN:
                     return Phases.NS_LEFT_YELLOW;
@@ -413,9 +395,6 @@ class TestTCS extends Thread {
                 case EW_LEFT_GREEN:
                     return Phases.EW_LEFT_YELLOW;
                 case ALL_RED1:
-                case ALL_RED2:
-                case ALL_RED3:
-                case ALL_RED4:
                     //figure out which lane needs to be given the right of way for the emergency vehicle
                     //THIS LOGIC IS SWITCHED TO WORK CORRECTLY!
                     switch (possibleEmergency){
@@ -431,10 +410,10 @@ class TestTCS extends Thread {
                             return Phases.EW_GREEN;
                         case N1:
                         case S1:
-                            return Phases.NS_LEFT_GREEN;
+                            return Phases.EW_LEFT_GREEN;
                         case E1:
                         case W1:
-                            return Phases.EW_LEFT_GREEN;
+                            return Phases.NS_LEFT_GREEN;
                     }
             }
         }
@@ -564,9 +543,7 @@ class TestTCS extends Thread {
     }
 
     public void resetEmergenciesOnLanes(){
-        for(Lanes l : Lanes.values()){
-            if(l.getEmergencyOnLane()) l.setEmergencyOnLane(false);
-        }
+        Arrays.stream(Lanes.values()).forEach(lane -> lane.setEmergencyOnLane(false));
 
     }
 }
