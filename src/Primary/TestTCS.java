@@ -30,10 +30,6 @@ import java.util.Arrays;
 // - EV can get locked up if multiple EV arrivals occur at once. What happens
 // is left turn signals are just cycled over and over.
 
-    //If an emergency vehicle appears on a straight lane (EW, for example) when
-    // a light is already green, it will phase the straight away to yellow, then red
-    //stopping the emergency vehicle in its tracks. It then adds an additional phase of
-    //green turns to yellow to red and THEN allows the emergency vehicle to pass
 
 class TestTCS extends Thread {
     private Boolean running = true;
@@ -90,7 +86,7 @@ class TestTCS extends Thread {
 //            }
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null){
-                System.out.println(possibleEmergency);
+                System.out.println("Emergency detected! at: "+ possibleEmergency);
                 bcFlasher.setRunning(false);
                 bcFlasher = new Flasher((1 == getEmergencyPath()));
                 t = new Thread(bcFlasher);
@@ -110,9 +106,14 @@ class TestTCS extends Thread {
                 case DayMode:
                 case EmergencyMode:
                     // EmergencyMode code goes here
+                    System.out.println("------------------------------");
+                    System.out.println("Current Mode: "+ currentMode);
+                    System.out.println("Current Phase: "+currentPhase);
                     System.out.print(currentPhase+ " -----> ");
                     currentPhase = findNextPhase(currentPhase);
                     System.out.println(currentPhase);
+                    System.out.println("------------------------------");
+
                     displayCurrentPhase(currentPhase);
 //                    new Thread(new Flasher(false)).start();
                     break;
@@ -412,6 +413,9 @@ class TestTCS extends Thread {
                 case EW_LEFT_GREEN:
                     return Phases.EW_LEFT_YELLOW;
                 case ALL_RED1:
+                case ALL_RED2:
+                case ALL_RED3:
+                case ALL_RED4:
                     //figure out which lane needs to be given the right of way for the emergency vehicle
                     //THIS LOGIC IS SWITCHED TO WORK CORRECTLY!
                     switch (possibleEmergency){
