@@ -30,7 +30,6 @@ import java.util.Arrays;
 class TestTCS extends Thread {
     private Boolean running = true;
     private TICSModes beforeEmergencyMode = TICSModes.DayMode;
-    private Phases beforeEmergencyPhase= null;
     private TICSModes currentMode = TICSModes.NightMode;
     private Lanes firstLane = null;
     private Flasher bcFlasher = new Flasher(false);
@@ -77,7 +76,6 @@ class TestTCS extends Thread {
             //When the current mode is Day or Night mode and an emergency vehicle is first detected
             if (currentMode!=TICSModes.EmergencyMode && possibleEmergency!=null && currentMode != TICSModes.MalfunctionMode){
                 beforeEmergencyMode=currentMode;
-                beforeEmergencyPhase=currentPhase;
                 currentMode=TICSModes.EmergencyMode;
             }
             //When the current mode is emergency mode and there is no longer an emergency vehicle around
@@ -85,9 +83,9 @@ class TestTCS extends Thread {
                 bcFlasher.setRunning(false);
                 prevEmergency = null;
                 System.out.println("EV Cleared");
-                currentMode=beforeEmergencyMode;
-                currentPhase=beforeEmergencyPhase;
+                currentMode = beforeEmergencyMode;
             }
+
             switch (currentMode) {
                 case NightMode:
                 case DayMode:
@@ -98,13 +96,10 @@ class TestTCS extends Thread {
                     break;
                 case MalfunctionMode:
                     currentPhase = findNextPhase(currentPhase);
-
                     displayCurrentPhase(currentPhase);
 
-                    /*
-                        Resets the current first lane in order to not reconsider that lane
-                        to allow passage
-                     */
+                    // Resets the current first lane in order to not
+                    // reconsider that lane to allow passage
 
                     if(firstLane != null) {
                         fastestArrival = 0;
@@ -113,7 +108,6 @@ class TestTCS extends Thread {
                     }
                     break;
             }
-
             try {
                 sleep(currentPhase.getPhaseTime());
                 stopPedestrianLights();
@@ -123,6 +117,21 @@ class TestTCS extends Thread {
             }
         }
         System.out.println("Test ended..");
+    }
+
+    private Phases returnToNormal(Phases phase){
+
+        switch(phase){
+            case NS_LEFT_GREEN:
+                return Phases.NS_LEFT_YELLOW;
+            case NS_GREEN:
+                return Phases.NS_YELLOW;
+            case EW_LEFT_GREEN:
+                return Phases.EW_LEFT_YELLOW;
+            case EW_GREEN:
+                return Phases.EW_YELLOW;
+        }
+        return null;
     }
 
     /**
@@ -213,7 +222,6 @@ class TestTCS extends Thread {
         @Override
         public void run(){
             while(running) {
-
                 if(ns) {
                     // North South DOT do: Flash East West, Solid North South.
                     ConfirmationBeacon.NORTH.changeColor(BeaconColor.WHITE);
